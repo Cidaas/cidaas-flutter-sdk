@@ -6,25 +6,21 @@ import '../screens/splash_screen.dart';
 
 class LoginHandleScreen extends StatefulWidget {
   final String routeTo;
-  final StatefulWidget returnScreen;
 
-  LoginHandleScreen(String routeTo, StatefulWidget returnScreen)
-      : routeTo = routeTo,
-        returnScreen = returnScreen;
+  LoginHandleScreen(String routeTo)
+      : routeTo = routeTo;
 
   // This widget is the root of your application.
   @override
   _LoginHandleScreen createState() =>
-      _LoginHandleScreen(this.routeTo, returnScreen);
+      _LoginHandleScreen(this.routeTo);
 }
 
 class _LoginHandleScreen extends State<LoginHandleScreen> {
   String routeTo;
-  StatefulWidget returnScreen;
 
-  _LoginHandleScreen(String routeTo, StatefulWidget returnScreen) {
+  _LoginHandleScreen(String routeTo) {
     this.routeTo = routeTo;
-    this.returnScreen = returnScreen;
   }
 
   @override
@@ -49,14 +45,7 @@ class _LoginHandleScreen extends State<LoginHandleScreen> {
                       dataLoadingSnapShot.connectionState ==
                               ConnectionState.waiting
                           ? SplashScreen()
-                          : dataLoadingSnapShot.data
-                              ? //Future.delayed(Duration.zero, () {
-                                  Navigator.of(ctx).push(MaterialPageRoute(
-                                      settings: RouteSettings(name: routeTo),
-                                      builder: (ctx) => returnScreen))//;
-                                //})
-                              : LoginBrowser()
-                          ),
+                          : LoginBrowser(routeTo)),
         ),
       ),
     );

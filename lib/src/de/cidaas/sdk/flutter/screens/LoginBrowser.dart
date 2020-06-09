@@ -1,3 +1,5 @@
+import '../screens/splash_screen.dart';
+
 import '../cidaas_login_provider.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:flutter/material.dart';
@@ -5,12 +7,22 @@ import 'package:provider/provider.dart';
 
 class LoginBrowser extends StatefulWidget {
   static const routeName = "/login";
+  final String routeTo;
+
+  LoginBrowser(String routeTo)
+      : routeTo = routeTo;
 
   @override
-  _LoginBrowserState createState() => _LoginBrowserState();
+  _LoginBrowserState createState() => _LoginBrowserState(routeTo);
 }
 
 class _LoginBrowserState extends State<LoginBrowser> {
+
+  _LoginBrowserState(String routeTo) {
+    this.routeTo = routeTo;
+  }
+
+  String routeTo;
   var initUrl = CidaasLoginProvider.getLoginURL();
   bool isLoading = false;
   bool isInitiated = false;
@@ -18,17 +30,21 @@ class _LoginBrowserState extends State<LoginBrowser> {
   final comKey = Key('login');
   @override
   Widget build(BuildContext context) {
-    // var clearCookie = ModalRoute.of(context).settings.arguments as bool;
-    // if (clearCookie == null) {
-    //   clearCookie = false;
-    // }
+
     print(initUrl);
+    print("Check if already logged in");
+    Provider.of<CidaasLoginProvider>(context, listen: false).refreshLoginFromCache().then((loadedFromCache) => {
+      print("Loaded from cache: " + loadedFromCache.toString()),
+      if (loadedFromCache) {
+        Navigator.of(context)
+            .pushReplacementNamed(routeTo)
+      }
+    });
+
     bool clearCookie = true;
     final flutterWebviewPlugin = new FlutterWebviewPlugin();
-    // if (clearCookie) {
     try {
       flutterWebviewPlugin.cleanCookies();
-    //  flutterWebviewPlugin.clearCache();
     } catch (e) {}
 
     flutterWebviewPlugin.onUrlChanged.listen((String url) async {
@@ -44,8 +60,9 @@ class _LoginBrowserState extends State<LoginBrowser> {
             await Provider.of<CidaasLoginProvider>(context, listen: false).getAccessTokenByCode(code);
         if (userinfo != null) {
           flutterWebviewPlugin.close();
-          //Navigator.of(context)
-          //    .pushReplacementNamed("/info");
+          print("Routing should occur, token: " + userinfo.accessToken);
+          Navigator.of(context)
+              .pushReplacementNamed(routeTo);
         } else {
           try {
             setState(() {
@@ -60,17 +77,7 @@ class _LoginBrowserState extends State<LoginBrowser> {
 
     Widget _getInitWidget() {
       return Container(
-          // color: Colors.redAccent,
-          child: Center(
-            child: Text(
-              'please_wait',
-              style: TextStyle(
-                  color: Theme.of(context)
-                      .textTheme
-                      .headline5
-                      .color) /* TextStyle(color: Colors.white) */,
-            ),
-          ),
+          child: SplashScreen()
         );
     }
 
