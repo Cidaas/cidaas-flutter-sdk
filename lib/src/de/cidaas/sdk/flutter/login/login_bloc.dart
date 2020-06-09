@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import './../authentification/authentication_storage_helper.dart';
-import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import './../entity/token_entity.dart';
 
