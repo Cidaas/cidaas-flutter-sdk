@@ -1,24 +1,25 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import './../authentification/authentication_storage_helper.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
+import './../entity/token_entity.dart';
 
 import './../authentification/authentication.dart';
-import './../authentification/authentication_handler.dart';
 
 part 'login_event.dart';
 
 part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  final AuthHandler authHandler;
+  final AuthStorageHelper authStorageHelper;
   final AuthenticationBloc authenticationBloc;
 
   LoginBloc({
-    @required this.authHandler,
+    @required this.authStorageHelper,
     @required this.authenticationBloc,
-  })  : assert(authHandler != null),
+  })  : assert(authStorageHelper != null),
         assert(authenticationBloc != null);
 
   @override
@@ -28,7 +29,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   Stream<LoginState> mapEventToState(LoginEvent event) async* {
     if (event is LoggedIn) {
       yield LoginInitial();
-      authenticationBloc.add(AuthenticationLoggedIn(token: event.props.first));
+      authenticationBloc.add(
+          AuthenticationLoggedIn(tokenEntity: event.tokenEntity));
       yield LoginInitial();
     }
     if (event is LoginFailed) {

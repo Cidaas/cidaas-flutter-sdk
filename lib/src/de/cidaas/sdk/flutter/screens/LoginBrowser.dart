@@ -1,5 +1,5 @@
 import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/authentification/authentication.dart';
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/authentification/authentication_handler.dart';
+import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/authentification/authentication_storage_helper.dart';
 import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/login/login_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -10,9 +10,9 @@ import 'package:provider/provider.dart';
 
 class LoginBrowser extends StatefulWidget {
 
-  final AuthHandler authHandler;
+  final AuthStorageHelper authStorageHelper;
 
-  LoginBrowser({Key key, @required this.authHandler}) : super(key: key);
+  LoginBrowser({Key key, @required this.authStorageHelper}) : super(key: key);
 
   @override
   _LoginBrowserState createState() => _LoginBrowserState();
@@ -22,13 +22,13 @@ class _LoginBrowserState extends State<LoginBrowser> {
   LoginBloc _loginBloc;
   AuthenticationBloc _authenticationBloc;
 
-  AuthHandler get authHandler => AuthHandler();
+  AuthStorageHelper get authStorageHelper => AuthStorageHelper();
 
   @override
   void initState() {
     _authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
     _loginBloc = LoginBloc(
-      authHandler: authHandler,
+      authStorageHelper: authStorageHelper,
       authenticationBloc: _authenticationBloc,
     );
     super.initState();

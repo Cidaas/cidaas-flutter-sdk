@@ -1,23 +1,16 @@
 part of 'login_bloc.dart';
 
-abstract class LoginEvent extends Equatable {
+abstract class LoginEvent {
   const LoginEvent();
-
-
-  @override
-  List<Object> get props => [];
 }
 
 class LoggedIn extends LoginEvent {
-  final String token;
+  final TokenEntity tokenEntity;
 
-  const LoggedIn({@required this.token});
-
-  @override
-  List<Object> get props => [token];
+  const LoggedIn({@required this.tokenEntity});
 
   @override
-  String toString() => 'LoggedIn { token: $token }';
+  String toString() => 'LoggedIn { tokenEntity: $tokenEntity }';
 }
 
 

@@ -4,25 +4,21 @@ import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
 import 'authentication.dart';
-import 'authentication_handler.dart';
+import 'authentication_storage_helper.dart';
 
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
-  final AuthHandler authHandler;
-
-  AuthenticationBloc({@required this.authHandler})
-      : assert(authHandler != null);
+  final AuthStorageHelper authStorageHelper = AuthStorageHelper();
 
   @override
   AuthenticationState get initialState => AuthenticationInitial();
 
   @override
   Stream<AuthenticationState> mapEventToState(
-      AuthenticationEvent event,
-      ) async* {
-    print("Event auth bloc " + event.toString());
+    AuthenticationEvent event,
+  ) async* {
     if (event is AuthenticationStarted) {
-      final bool hasToken = await authHandler.hasToken();
+      final bool hasToken = await authStorageHelper.hasToken();
 
       if (hasToken) {
         yield AuthenticationSuccess();
@@ -33,13 +29,13 @@ class AuthenticationBloc
 
     if (event is AuthenticationLoggedIn) {
       yield AuthenticationInProgress();
-      await authHandler.persistToken(event.token);
+      await authStorageHelper.persistTokenEntity(event.tokenEntity);
       yield AuthenticationSuccess();
     }
 
     if (event is AuthenticationLoggedOut) {
       yield AuthenticationInProgress();
-      await authHandler.deleteToken();
+      await authStorageHelper.deleteToken();
       yield AuthenticationFailure();
     }
   }

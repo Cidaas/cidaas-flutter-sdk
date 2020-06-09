@@ -1,3 +1,4 @@
+import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/entity/token_entity.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
@@ -11,15 +12,15 @@ abstract class AuthenticationEvent extends Equatable {
 class AuthenticationStarted extends AuthenticationEvent {}
 
 class AuthenticationLoggedIn extends AuthenticationEvent {
-  final String token;
+  final TokenEntity tokenEntity;
 
-  const AuthenticationLoggedIn({@required this.token});
-
-  @override
-  List<Object> get props => [token];
+  const AuthenticationLoggedIn({@required this.tokenEntity});
 
   @override
-  String toString() => 'LoggedIn { token: $token }';
+  List<Object> get props => [tokenEntity];
+
+  @override
+  String toString() => 'LoggedIn { tokenEntity: $tokenEntity }';
 }
 
 class AuthenticationLoggedOut extends AuthenticationEvent {}
