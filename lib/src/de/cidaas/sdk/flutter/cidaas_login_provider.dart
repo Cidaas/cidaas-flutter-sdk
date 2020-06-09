@@ -7,19 +7,18 @@ import 'entity/token_entity.dart';
 import 'entity/user_info_entity.dart';
 import 'http/http_helper.dart';
 
-
 class CidaasLoginProvider with ChangeNotifier {
   TokenEntity _tokenEntity;
 
   static String baseUrl =
-      "https://protection-free.cidaas.de";
+      "https://nightlybuild.cidaas.de";
   static String clientId =
-      "50e09c48-30be-4c98-bf22-32c8e7a4e545";
+      "07c4e2dd-cf5b-4c82-9fc9-67da2edacfa7";
   static String clientSecret =
-      "cba5e313-d6a3-4501-88ec-eb0d308bfc23";
-  static String scopes = "openid profile email phone offline_access";
+      "faebad89-ee5e-4b03-8f50-69975f80bee6";
+  static String scopes = "openid profile email";
   static String redirectUri =
-      "https://protection-free.cidaas.de/apps-srv/ping";
+      "https://nightlybuild.cidaas.de/apps-srv/ping";
 
   //check current this.accesstoken is available and not expired
   bool get isAuth {
@@ -44,8 +43,14 @@ class CidaasLoginProvider with ChangeNotifier {
   // 1.1. no access token is availabe --> return false
   // 1.2. the access token in DB is ok, then it should return the accessToken
   // 1.3. the access token in DB is expired --> renew via refreshtoken
-  Future<bool> tryAutoLogin() async {
-    TokenEntity entity = await CidaasLoginProvider.getCurrentAccessToken();
+  /**
+   * 1. Checks if the available AccessToken is expired (<60 sec)
+   * 1.1. If yes tries to get a new accessToken via stored refresh_token
+   * 2. If successful, sets the the access_token
+   * 3. returns true if successful
+   */
+  Future<bool> refreshLoginFromCache() async {
+    TokenEntity entity = await CidaasLoginProvider.getStoredAccessToken();
     if (entity != null) this._tokenEntity = entity;
     return (entity != null);
   }
@@ -149,7 +154,7 @@ class CidaasLoginProvider with ChangeNotifier {
     return utf8.decode(base64Url.decode(output));
   }
 
-  //check if the overhanded accessToken is still valid, and does not expire in less than 60 seconds
+  //check if the given accessToken is still valid, and does not expire in less than 60 seconds
   static dynamic isAccessTokenExpired(String accessToken) {
     final decClaimSet =
     CidaasLoginProvider._decodeBase64(accessToken.split(".")[1]);
@@ -164,7 +169,7 @@ class CidaasLoginProvider with ChangeNotifier {
 //return DBTokenEntity if available and not expired and baseUrl fits
 //return Renewed Entity if refreshtoken is available, and call returned a value
 // else return null
-  static Future<TokenEntity> getCurrentAccessToken() async {
+  static Future<TokenEntity> getStoredAccessToken() async {
     TokenEntity dbEntity = await LoginDBHelper.getCurrentToken();
     if (dbEntity == null) return null;
     var tokenInfo = isAccessTokenExpired(dbEntity.accessToken);

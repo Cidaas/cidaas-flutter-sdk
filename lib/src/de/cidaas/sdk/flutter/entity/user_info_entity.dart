@@ -1,4 +1,4 @@
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/database/login_db_helper.dart';
+import '../database/login_db_helper.dart';
 import 'package:flutter/material.dart';
 
 class UserInfoEntity with ChangeNotifier {

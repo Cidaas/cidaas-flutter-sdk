@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/authentification/authentication.dart';
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/authentification/authentication_handler.dart';
+import './../authentification/authentication.dart';
+import './../authentification/authentication_handler.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 

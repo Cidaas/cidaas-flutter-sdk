@@ -1,7 +1,7 @@
 
 
 import 'package:path/path.dart' as path;
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/entity/token_entity.dart';
+import '../entity/token_entity.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 
 
