@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
@@ -32,6 +32,6 @@ class AuthHandler {
 
   Future<bool> hasToken() async {
     String token = await storage.read(key: ACCESS_TOKEN);
-    return token?.isEmpty ?? true;
+    return token?.isNotEmpty ?? false;
   }
 }

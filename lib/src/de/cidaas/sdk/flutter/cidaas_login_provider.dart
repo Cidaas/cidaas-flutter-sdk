@@ -7,7 +7,7 @@ import 'entity/token_entity.dart';
 import 'entity/user_info_entity.dart';
 import 'http/http_helper.dart';
 
-class CidaasLoginProvider with ChangeNotifier {
+class CidaasLoginProvider  {
   TokenEntity _tokenEntity;
 
   static String baseUrl =

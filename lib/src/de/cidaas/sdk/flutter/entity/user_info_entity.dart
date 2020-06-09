@@ -1,4 +1,3 @@
-import '../database/login_db_helper.dart';
 import 'package:flutter/material.dart';
 
 class UserInfoEntity with ChangeNotifier {
@@ -39,14 +38,6 @@ class UserInfoEntity with ChangeNotifier {
     'birthYear': birthYear,
     'gender': gender
   };
-
-  Future<bool> checkTokenValid() async {
-    Future<bool> checkTokenValid =
-    LoginDBHelper.getCurrentToken().then((value) {
-      return (value != null);
-    });
-    return checkTokenValid;
-  }
 
 
 }

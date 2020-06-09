@@ -8,10 +8,10 @@ import 'authentication_handler.dart';
 
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
-  final AuthHandler authRepository;
+  final AuthHandler authHandler;
 
-  AuthenticationBloc({@required this.authRepository})
-      : assert(authRepository != null);
+  AuthenticationBloc({@required this.authHandler})
+      : assert(authHandler != null);
 
   @override
   AuthenticationState get initialState => AuthenticationInitial();
@@ -20,8 +20,9 @@ class AuthenticationBloc
   Stream<AuthenticationState> mapEventToState(
       AuthenticationEvent event,
       ) async* {
+    print("Event auth bloc " + event.toString());
     if (event is AuthenticationStarted) {
-      final bool hasToken = await authRepository.hasToken();
+      final bool hasToken = await authHandler.hasToken();
 
       if (hasToken) {
         yield AuthenticationSuccess();
@@ -32,13 +33,13 @@ class AuthenticationBloc
 
     if (event is AuthenticationLoggedIn) {
       yield AuthenticationInProgress();
-      await authRepository.persistToken(event.token);
+      await authHandler.persistToken(event.token);
       yield AuthenticationSuccess();
     }
 
     if (event is AuthenticationLoggedOut) {
       yield AuthenticationInProgress();
-      await authRepository.deleteToken();
+      await authHandler.deleteToken();
       yield AuthenticationFailure();
     }
   }
