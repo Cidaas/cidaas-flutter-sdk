@@ -31,8 +31,6 @@ class AuthenticationBloc
     }
 
     if (event is AuthenticationLoggedIn) {
-      yield AuthenticationInProgress();
-      await authRepository.persistToken(event.token);
       yield AuthenticationSuccess();
     }
 

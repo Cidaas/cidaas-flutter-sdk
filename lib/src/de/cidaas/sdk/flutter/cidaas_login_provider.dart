@@ -2,13 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
-import 'database/login_db_helper.dart';
+import 'authentification/authentication_handler.dart';
 import 'entity/token_entity.dart';
 import 'entity/user_info_entity.dart';
 import 'http/http_helper.dart';
 
 class CidaasLoginProvider with ChangeNotifier {
   TokenEntity _tokenEntity;
+
+  final AuthHandler _authHandler = new AuthHandler();
 
   static String baseUrl =
       "https://nightlybuild.cidaas.de";
@@ -39,18 +41,12 @@ class CidaasLoginProvider with ChangeNotifier {
     return null;
   }
 
-  // 1. checks if the available AccessToken is expired (<60sec)
-  // 1.1. no access token is availabe --> return false
-  // 1.2. the access token in DB is ok, then it should return the accessToken
-  // 1.3. the access token in DB is expired --> renew via refreshtoken
-  /**
-   * 1. Checks if the available AccessToken is expired (<60 sec)
-   * 1.1. If yes tries to get a new accessToken via stored refresh_token
-   * 2. If successful, sets the the access_token
-   * 3. returns true if successful
-   */
+  /// 1. Checks if the available AccessToken is expired (<60 sec)
+  /// 1.1. If yes tries to get a new accessToken via stored refresh_token
+  /// 2. If successful, sets the the access_token
+  /// 3. returns true if successful
   Future<bool> refreshLoginFromCache() async {
-    TokenEntity entity = await CidaasLoginProvider.getStoredAccessToken();
+    TokenEntity entity = await getStoredAccessToken();
     if (entity != null) this._tokenEntity = entity;
     return (entity != null);
   }
@@ -77,9 +73,9 @@ class CidaasLoginProvider with ChangeNotifier {
           headers: {});
       if (tokenResponse != null) {
         final tokenEntity = TokenEntity.fromJson(tokenResponse);
-        await LoginDBHelper.insert(tokenEntity);
+        await _authHandler.persistTokenEntity(tokenEntity);
         final idToken = tokenResponse["id_token"];
-        final parsedInfo = await CidaasLoginProvider.parseToken(idToken);
+        final parsedInfo = await parseToken(idToken);
         if (tokenEntity != null) this._tokenEntity = tokenEntity;
         return tokenEntity;
       }
@@ -90,8 +86,8 @@ class CidaasLoginProvider with ChangeNotifier {
     return null;
   }
 
-  static bool inRefreshTokenOperation = false;
-  static Future<TokenEntity> renewAccessTokenByRefreshToken(
+  bool inRefreshTokenOperation = false;
+  Future<TokenEntity> renewAccessTokenByRefreshToken(
       String refreshToken) async {
     try {
       inRefreshTokenOperation = true;
@@ -108,9 +104,9 @@ class CidaasLoginProvider with ChangeNotifier {
       inRefreshTokenOperation = false;
       if (tokenResponse != null) {
         final tokenEntity = TokenEntity.fromJson(tokenResponse);
-        await LoginDBHelper.insert(tokenEntity);
+        await _authHandler.persistTokenEntity(tokenEntity);
         final idToken = tokenResponse["id_token"];
-        final parsedInfo = await CidaasLoginProvider.parseToken(idToken);
+        final parsedInfo = await parseToken(idToken);
         return tokenEntity;
       }
     } catch (e) {}
@@ -118,9 +114,9 @@ class CidaasLoginProvider with ChangeNotifier {
     return null;
   }
 
-  static Future<bool> doLogout() async {
+  Future<bool> doLogout() async {
     try {
-      final tokenInfo = await LoginDBHelper.getCurrentToken();
+      final tokenInfo = await _authHandler.getCurrentToken();
 
       await HTTPHelper.postData(
           url:
@@ -128,7 +124,7 @@ class CidaasLoginProvider with ChangeNotifier {
 
       // Clear all local dbs
       //await UserDBHelper.deleteAllUser();
-      await LoginDBHelper.deleteAllUser();
+      await _authHandler.deleteToken();
 
       return true;
     } catch (e) {}
@@ -166,33 +162,33 @@ class CidaasLoginProvider with ChangeNotifier {
     return (difference.inSeconds < 60) ? null : tokenInfo;
   }
 
-//return DBTokenEntity if available and not expired and baseUrl fits
-//return Renewed Entity if refreshtoken is available, and call returned a value
-// else return null
-  static Future<TokenEntity> getStoredAccessToken() async {
-    TokenEntity dbEntity = await LoginDBHelper.getCurrentToken();
+   /// return DBTokenEntity if available and not expired and baseUrl fits
+   /// return Renewed Entity if refreshtoken is available, and call returned a value
+   /// else return null
+  Future<TokenEntity> getStoredAccessToken() async {
+    TokenEntity dbEntity = await _authHandler.getCurrentToken();
     if (dbEntity == null) return null;
     var tokenInfo = isAccessTokenExpired(dbEntity.accessToken);
     if (tokenInfo != null && tokenInfo['iss'] != CidaasLoginProvider.baseUrl) {
       // Clear all local dbs
-      await LoginDBHelper.deleteAllUser();
+      await _authHandler.deleteToken();
       return null;
     } else if (tokenInfo != null) {
       return dbEntity;
     } else {
-      var newEntity = await CidaasLoginProvider.renewAccessTokenByRefreshToken(
+      var newEntity = await renewAccessTokenByRefreshToken(
           dbEntity.refreshToken);
       return newEntity;
     }
   }
 
-  static Future<UserInfoEntity> parseToken(String token) async {
+  Future<UserInfoEntity> parseToken(String token) async {
     final decClaimSet = _decodeBase64(token.split(".")[1]);
     print(decClaimSet);
     final tokenInfo = json.decode(decClaimSet);
     if (tokenInfo != null && tokenInfo['iss'] != CidaasLoginProvider.baseUrl) {
       // Clear all local dbs
-      await LoginDBHelper.deleteAllUser();
+      await _authHandler.deleteToken();
       return null;
     } else {
       var tokInfo = UserInfoEntity.fromJson(tokenInfo);
