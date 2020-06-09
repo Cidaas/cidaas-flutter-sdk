@@ -1,7 +1,4 @@
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
-
 import 'authentification/authentication_storage_helper.dart';
 import 'entity/token_entity.dart';
 import 'entity/user_info_entity.dart';

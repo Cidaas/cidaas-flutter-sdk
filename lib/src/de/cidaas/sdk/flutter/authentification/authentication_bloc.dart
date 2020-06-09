@@ -1,10 +1,13 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
-
-import 'authentication.dart';
+import 'package:flutter/material.dart';
 import 'authentication_storage_helper.dart';
+import './../entity/token_entity.dart';
+
+part 'authentication_event.dart';
+
+part 'authentication_state.dart';
 
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
