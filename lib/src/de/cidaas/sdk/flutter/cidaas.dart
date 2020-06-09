@@ -2,31 +2,10 @@ import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/screens/LoginBrowser.
 
 import './authentification/authentication_storage_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:bloc/bloc.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'authentification/authentication.dart';
-
-
-class SimpleBlocDelegate extends BlocDelegate {
-  @override
-  void onEvent(Bloc bloc, Object event) {
-    print(event);
-    super.onEvent(bloc, event);
-  }
-
-  @override
-  void onTransition(Bloc bloc, Transition transition) {
-    print(transition);
-    super.onTransition(bloc, transition);
-  }
-
-  @override
-  void onError(Bloc bloc, Object error, StackTrace stackTrace) {
-    print(error);
-    super.onError(bloc, error, stackTrace);
-  }
-}
+import 'authentification/authentication_bloc.dart';
 
 abstract class Cidaas extends StatelessWidget {
   final AuthStorageHelper authStorageHelper;

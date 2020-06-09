@@ -1,5 +1,4 @@
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/entity/token_entity.dart';
-import 'package:meta/meta.dart';
+part of 'authentication_bloc.dart';
 
 abstract class AuthenticationEvent {
   const AuthenticationEvent();

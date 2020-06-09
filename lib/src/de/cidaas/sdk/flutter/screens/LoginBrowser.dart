@@ -1,6 +1,6 @@
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/authentification/authentication.dart';
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/authentification/authentication_storage_helper.dart';
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/login/login_bloc.dart';
+import './../authentification/authentication_bloc.dart';
+import './../authentification/authentication_storage_helper.dart';
+import './../login/login_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cidaas_login_provider.dart';
@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class LoginBrowser extends StatefulWidget {
-
   final AuthStorageHelper authStorageHelper;
 
   LoginBrowser({Key key, @required this.authStorageHelper}) : super(key: key);

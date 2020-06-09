@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:flutter/material.dart';
 import './../authentification/authentication_storage_helper.dart';
-import 'package:meta/meta.dart';
 import './../entity/token_entity.dart';
 
-import './../authentification/authentication.dart';
+import './../authentification/authentication_bloc.dart';
 
 part 'login_event.dart';
 
