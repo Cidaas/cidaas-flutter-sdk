@@ -28,10 +28,18 @@ class AuthStorageHelper {
   }
 
   Future<void> persistTokenEntity(TokenEntity tokenEntity) async {
-    await storage.write(key: SUB, value: tokenEntity.sub);
-    await storage.write(key: ACCESS_TOKEN, value: tokenEntity.accessToken);
-    await storage.write(key: ID_TOKEN, value: tokenEntity.idToken);
-    await storage.write(key: REFRESH_TOKEN, value: tokenEntity.refreshToken);
+    if (tokenEntity.sub != null) {
+      await storage.write(key: SUB, value: tokenEntity.sub);
+    }
+    if (tokenEntity.accessToken != null) {
+      await storage.write(key: ACCESS_TOKEN, value: tokenEntity.accessToken);
+    }
+    if (tokenEntity.idToken != null) {
+      await storage.write(key: ID_TOKEN, value: tokenEntity.idToken);
+    }
+    if (tokenEntity.refreshToken != null) {
+      await storage.write(key: REFRESH_TOKEN, value: tokenEntity.refreshToken);
+    }
   }
 
   Future<bool> hasUser(String sub) async {
