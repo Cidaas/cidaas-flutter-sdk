@@ -6,31 +6,37 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cidaas_login_provider.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class LoginBrowser extends StatefulWidget {
   final AuthStorageHelper authStorageHelper;
+  final String routeTo;
 
-  LoginBrowser({Key key, @required this.authStorageHelper}) : super(key: key);
+  LoginBrowser({Key key, @required this.authStorageHelper, this.routeTo}) : super(key: key);
 
   @override
-  _LoginBrowserState createState() => _LoginBrowserState();
+  _LoginBrowserState createState() => _LoginBrowserState(this.routeTo);
 }
 
 class _LoginBrowserState extends State<LoginBrowser> {
   LoginBloc _loginBloc;
   AuthenticationBloc _authenticationBloc;
+  String _routeTo;
 
   AuthStorageHelper get authStorageHelper => AuthStorageHelper();
 
+  _LoginBrowserState(String routeTo) {
+    this._routeTo = routeTo;
+  }
+
   @override
   void initState() {
+    super.initState();
     _authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
     _loginBloc = LoginBloc(
       authStorageHelper: authStorageHelper,
       authenticationBloc: _authenticationBloc,
     );
-    super.initState();
+
   }
 
   var initUrl = CidaasLoginProvider.getLoginURL();
@@ -44,10 +50,15 @@ class _LoginBrowserState extends State<LoginBrowser> {
         final parsedUrl = Uri.parse(url);
         final code = parsedUrl.queryParameters["code"];
         print(code);
-        final userinfo = CidaasLoginProvider().getAccessTokenByCode(code);
-        if (userinfo != null) {
-          _loginBloc.add(LoggedIn());
+        final tokenEntity = await CidaasLoginProvider().getAccessTokenByCode(code);
+        if (tokenEntity != null) {
+          print("TokenEntity in LoginBrowser" + tokenEntity.toString());
+          _loginBloc.add(LoggedIn(tokenEntity: tokenEntity));
           flutterWebviewPlugin.close();
+          if (this._routeTo?.isNotEmpty ?? false) {
+            Navigator.of(context)
+                .pushReplacementNamed(this._routeTo, arguments: tokenEntity);
+          }
         } else {
           flutterWebviewPlugin.show();
         }
