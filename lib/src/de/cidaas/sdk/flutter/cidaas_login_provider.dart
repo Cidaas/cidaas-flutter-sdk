@@ -148,8 +148,12 @@ class CidaasLoginProvider  {
 
   //check if the given accessToken is still valid, and does not expire in less than 60 seconds
   static dynamic isAccessTokenExpired(String accessToken) {
+    if (accessToken == null) {
+      print("access token is null");
+      return null;
+    }
     final decClaimSet =
-    CidaasLoginProvider._decodeBase64(accessToken?.split(".")[1]);
+    CidaasLoginProvider._decodeBase64(accessToken.split(".")[1]);
     print(decClaimSet);
     var tokenInfo = json.decode(decClaimSet);
     final expiresAt =
