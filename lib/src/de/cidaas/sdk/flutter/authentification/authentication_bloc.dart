@@ -24,7 +24,7 @@ class AuthenticationBloc
       final bool hasToken = await authStorageHelper.hasToken();
 
       if (hasToken) {
-        yield AuthenticationSuccess();
+        yield AuthenticationSuccess(tokenEntity: await authStorageHelper.getCurrentToken());
       } else {
         yield AuthenticationFailure();
       }
@@ -32,8 +32,12 @@ class AuthenticationBloc
 
     if (event is AuthenticationLoggedIn) {
       yield AuthenticationInProgress();
+      print("TokenEntity in map AuthenticationLoggedIn to AuthenticationSuccess: ");
+      if (event.tokenEntity != null) {
+        print(event.tokenEntity);
+      }
       await authStorageHelper.persistTokenEntity(event.tokenEntity);
-      yield AuthenticationSuccess();
+      yield AuthenticationSuccess(tokenEntity: event.tokenEntity);
     }
 
     if (event is AuthenticationLoggedOut) {
