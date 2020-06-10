@@ -3,11 +3,17 @@ import 'authentification/authentication_storage_helper.dart';
 import 'entity/token_entity.dart';
 import 'entity/user_info_entity.dart';
 import 'http/http_helper.dart';
+import './authentification/authentication_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CidaasLoginProvider  {
-  TokenEntity _tokenEntity;
+ TokenEntity _tokenEntity;
 
   final AuthStorageHelper _authHandler = new AuthStorageHelper();
+
+  AuthenticationBloc authenticationBloc;
+
+  CidaasLoginProvider({AuthenticationBloc authenticationBloc});
 
   static String baseUrl = "https://nightlybuild.cidaas.de";
   static String clientId = "07c4e2dd-cf5b-4c82-9fc9-67da2edacfa7";
@@ -21,7 +27,7 @@ class CidaasLoginProvider  {
     return assertionIsAuth;
   }
 
-  TokenEntity get tokenEntity => this._tokenEntity;
+ TokenEntity get tokenEntity => this._tokenEntity;
 
   // token return null if token is expired, else it returns a the accessToken as String
   String get token {
@@ -121,6 +127,7 @@ class CidaasLoginProvider  {
       // Clear all local dbs
       //await UserDBHelper.deleteAllUser();
       await _authHandler.deleteToken();
+      _tokenEntity = null;
 
       return true;
     } catch (e) {}

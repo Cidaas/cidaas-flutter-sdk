@@ -1,6 +1,5 @@
 import './../authentification/authentication_bloc.dart';
 import './../authentification/authentication_storage_helper.dart';
-import './../login/login_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cidaas_login_provider.dart';
@@ -18,7 +17,6 @@ class LoginBrowser extends StatefulWidget {
 }
 
 class _LoginBrowserState extends State<LoginBrowser> {
-  LoginBloc _loginBloc;
   AuthenticationBloc _authenticationBloc;
   String _routeTo;
 
@@ -32,11 +30,6 @@ class _LoginBrowserState extends State<LoginBrowser> {
   void initState() {
     super.initState();
     _authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
-    _loginBloc = LoginBloc(
-      authStorageHelper: authStorageHelper,
-      authenticationBloc: _authenticationBloc,
-    );
-
   }
 
   var initUrl = CidaasLoginProvider.getLoginURL();
@@ -53,7 +46,7 @@ class _LoginBrowserState extends State<LoginBrowser> {
         final tokenEntity = await CidaasLoginProvider().getAccessTokenByCode(code);
         if (tokenEntity != null) {
           print("TokenEntity in LoginBrowser" + tokenEntity.toString());
-          _loginBloc.add(LoggedIn(tokenEntity: tokenEntity));
+          _authenticationBloc.add(AuthenticationLoggedInEvent(tokenEntity: tokenEntity));
           flutterWebviewPlugin.close();
           if (this._routeTo?.isNotEmpty ?? false) {
             Navigator.of(context)
@@ -77,10 +70,10 @@ class _LoginBrowserState extends State<LoginBrowser> {
       );
     }
 
-    return BlocListener<LoginBloc, LoginState>(
-      bloc: _loginBloc,
+    return BlocListener<AuthenticationBloc, AuthenticationState>(
+      bloc: _authenticationBloc,
       listener: (context, state) {
-        if (state is LoginFailure) {
+        if (state is AuthenticationFailureState) {
           Scaffold.of(context).showSnackBar(
             SnackBar(
               content: Text('${state.error}'),
@@ -89,8 +82,8 @@ class _LoginBrowserState extends State<LoginBrowser> {
           );
         }
       },
-      child: BlocBuilder<LoginBloc, LoginState>(
-        bloc: _loginBloc,
+      child: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+        bloc: _authenticationBloc,
         builder: (context, state) {
           return getWebView();
         },
