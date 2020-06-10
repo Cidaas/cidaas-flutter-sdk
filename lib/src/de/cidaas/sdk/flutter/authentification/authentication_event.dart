@@ -4,15 +4,15 @@ abstract class AuthenticationEvent {
   const AuthenticationEvent();
 }
 
-class AuthenticationStarted extends AuthenticationEvent {}
+class AuthenticationStartedEvent extends AuthenticationEvent {}
 
-class AuthenticationLoggedIn extends AuthenticationEvent {
+class AuthenticationLoggedInEvent extends AuthenticationEvent {
   final TokenEntity tokenEntity;
 
-  const AuthenticationLoggedIn({@required this.tokenEntity});
+  const AuthenticationLoggedInEvent({@required this.tokenEntity});
 
   @override
   String toString() => 'LoggedIn { tokenEntity: $tokenEntity }';
 }
 
-class AuthenticationLoggedOut extends AuthenticationEvent {}
+class AuthenticationLoggedOutEvent extends AuthenticationEvent {}

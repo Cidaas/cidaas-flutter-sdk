@@ -1,13 +1,13 @@
 part of 'authentication_bloc.dart';
 
-abstract class AuthenticationState {}
+abstract class AuthenticationState {
+  const AuthenticationState();
+}
 
-class AuthenticationInitial extends AuthenticationState {}
-
-class AuthenticationSuccess extends AuthenticationState {
+class AuthenticationSuccessState extends AuthenticationState {
   final TokenEntity tokenEntity;
 
-  AuthenticationSuccess({@required this.tokenEntity});
+  AuthenticationSuccessState({@required this.tokenEntity});
 
   TokenEntity get token{
     return tokenEntity;
@@ -17,6 +17,15 @@ class AuthenticationSuccess extends AuthenticationState {
   String toString() => 'LoggedIn { tokenEntity: $tokenEntity }';
 }
 
-class AuthenticationFailure extends AuthenticationState {}
+class AuthenticationFailureState extends AuthenticationState {
+  final String error;
 
-class AuthenticationInProgress extends AuthenticationState {}
+  const AuthenticationFailureState({@required this.error});
+
+  @override
+  String toString() => 'AuthenticationFailure { error: $error }';
+}
+
+class AuthenticationLoggedOutState extends AuthenticationState {}
+
+class AuthenticationInProgressState extends AuthenticationState {}

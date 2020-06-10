@@ -14,15 +14,16 @@ abstract class Cidaas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("Cidaas build called");
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
       builder: (context, state) {
-        if (state is AuthenticationSuccess) {
+        if (state is AuthenticationSuccessState) {
           return getHomePage(tokenEntity: state.tokenEntity);
         }
-        if (state is AuthenticationFailure) {
+        if (state is AuthenticationLoggedOutState) {
           return LoginBrowser(authStorageHelper: authStorageHelper);
         }
-        if (state is AuthenticationInProgress) {
+        if (state is AuthenticationInProgressState) {
           return getSplashScreen();
         }
         return getSplashScreen();
@@ -33,4 +34,6 @@ abstract class Cidaas extends StatelessWidget {
   Widget getHomePage({tokenEntity});
 
   Widget getSplashScreen();
+
+  Widget getLoggedOutScreen();
 }

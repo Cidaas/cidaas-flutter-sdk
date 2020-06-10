@@ -14,36 +14,38 @@ class AuthenticationBloc
   final AuthStorageHelper authStorageHelper = AuthStorageHelper();
 
   @override
-  AuthenticationState get initialState => AuthenticationInitial();
+  AuthenticationState get initialState => AuthenticationLoggedOutState();
 
   @override
   Stream<AuthenticationState> mapEventToState(
     AuthenticationEvent event,
   ) async* {
-    if (event is AuthenticationStarted) {
+    if (event is AuthenticationStartedEvent) {
+      yield AuthenticationInProgressState();
       final bool hasToken = await authStorageHelper.hasToken();
 
       if (hasToken) {
-        yield AuthenticationSuccess(tokenEntity: await authStorageHelper.getCurrentToken());
+        yield AuthenticationSuccessState(tokenEntity: await authStorageHelper.getCurrentToken());
       } else {
-        yield AuthenticationFailure();
+        yield AuthenticationLoggedOutState();
       }
     }
 
-    if (event is AuthenticationLoggedIn) {
-      yield AuthenticationInProgress();
+    if (event is AuthenticationLoggedInEvent) {
+      yield AuthenticationInProgressState();
       print("TokenEntity in map AuthenticationLoggedIn to AuthenticationSuccess: ");
       if (event.tokenEntity != null) {
         print(event.tokenEntity);
       }
       await authStorageHelper.persistTokenEntity(event.tokenEntity);
-      yield AuthenticationSuccess(tokenEntity: event.tokenEntity);
+      yield AuthenticationSuccessState(tokenEntity: event.tokenEntity);
     }
 
-    if (event is AuthenticationLoggedOut) {
-      yield AuthenticationInProgress();
+    if (event is AuthenticationLoggedOutEvent) {
+      yield AuthenticationInProgressState();
       await authStorageHelper.deleteToken();
-      yield AuthenticationFailure();
+      yield AuthenticationLoggedOutState();
+      this.close();
     }
   }
 }
