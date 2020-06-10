@@ -14,24 +14,23 @@ abstract class Cidaas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
-        builder: (context, state) {
-          print("State cidaas.dart " + state.toString());
-          if (state is AuthenticationSuccess) {
-            return getHomePage();
-          }
-          if (state is AuthenticationFailure) {
-            return LoginBrowser(authStorageHelper: authStorageHelper);
-          }
-          if (state is AuthenticationInProgress) {
-            return getSplashScreen();
-          }
+    return BlocBuilder<AuthenticationBloc, AuthenticationState>(
+      builder: (context, state) {
+        if (state is AuthenticationSuccess) {
+          return getHomePage(tokenEntity: state.tokenEntity);
+        }
+        if (state is AuthenticationFailure) {
+          return LoginBrowser(authStorageHelper: authStorageHelper);
+        }
+        if (state is AuthenticationInProgress) {
           return getSplashScreen();
-        },
-      ),
+        }
+        return getSplashScreen();
+      },
     );
   }
-  Widget getHomePage();
+
+  Widget getHomePage({tokenEntity});
+
   Widget getSplashScreen();
 }
