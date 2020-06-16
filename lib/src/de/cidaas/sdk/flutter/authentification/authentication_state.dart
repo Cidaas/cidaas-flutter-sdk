@@ -26,6 +26,8 @@ class AuthenticationFailureState extends AuthenticationState {
   String toString() => 'AuthenticationFailure { error: $error }';
 }
 
-class AuthenticationLoggedOutState extends AuthenticationState {}
+class AuthenticationShowLoginWithBrowserState extends AuthenticationState {}
+
+class AuthenticationHasLoggedOutState extends AuthenticationState {}
 
 class AuthenticationInProgressState extends AuthenticationState {}

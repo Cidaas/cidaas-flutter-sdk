@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:cidaassdkflutter/cidaassdkflutter.dart';
 import 'package:flutter/material.dart';
 import 'authentication_storage_helper.dart';
 import './../entity/token_entity.dart';
@@ -11,10 +12,16 @@ part 'authentication_state.dart';
 
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
+
+  static final AuthenticationBloc _instance = AuthenticationBloc._internal();
+  factory AuthenticationBloc() => _instance;
+
+  AuthenticationBloc._internal();
+
   final AuthStorageHelper authStorageHelper = AuthStorageHelper();
 
   @override
-  AuthenticationState get initialState => AuthenticationLoggedOutState();
+  AuthenticationState get initialState => AuthenticationShowLoginWithBrowserState();
 
   @override
   Stream<AuthenticationState> mapEventToState(
@@ -22,21 +29,19 @@ class AuthenticationBloc
   ) async* {
     if (event is AuthenticationStartedEvent) {
       yield AuthenticationInProgressState();
-      final bool hasToken = await authStorageHelper.hasToken();
+      final bool isAuthorized = await CidaasLoginProvider.isAuth;
+      final token = await authStorageHelper.getCurrentToken();
+      print("Token in Bloc from storage: " + token.toString());
 
-      if (hasToken) {
+      if (isAuthorized) {
         yield AuthenticationSuccessState(tokenEntity: await authStorageHelper.getCurrentToken());
       } else {
-        yield AuthenticationLoggedOutState();
+        yield AuthenticationShowLoginWithBrowserState();
       }
     }
 
     if (event is AuthenticationLoggedInEvent) {
       yield AuthenticationInProgressState();
-      print("TokenEntity in map AuthenticationLoggedIn to AuthenticationSuccess: ");
-      if (event.tokenEntity != null) {
-        print(event.tokenEntity);
-      }
       await authStorageHelper.persistTokenEntity(event.tokenEntity);
       yield AuthenticationSuccessState(tokenEntity: event.tokenEntity);
     }
@@ -44,8 +49,7 @@ class AuthenticationBloc
     if (event is AuthenticationLoggedOutEvent) {
       yield AuthenticationInProgressState();
       await authStorageHelper.deleteToken();
-      yield AuthenticationLoggedOutState();
-      this.close();
+      yield AuthenticationHasLoggedOutState();
     }
   }
 }

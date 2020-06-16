@@ -1,19 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 import 'authentification/authentication_storage_helper.dart';
 import 'entity/token_entity.dart';
-import 'entity/user_info_entity.dart';
 import 'http/http_helper.dart';
 import './authentification/authentication_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class CidaasLoginProvider  {
- TokenEntity _tokenEntity;
-
-  final AuthStorageHelper _authHandler = new AuthStorageHelper();
-
-  AuthenticationBloc authenticationBloc;
-
-  CidaasLoginProvider({AuthenticationBloc authenticationBloc});
+class CidaasLoginProvider {
+  static final AuthStorageHelper _authStorageHelper = AuthStorageHelper();
 
   static String baseUrl = "https://nightlybuild.cidaas.de";
   static String clientId = "07c4e2dd-cf5b-4c82-9fc9-67da2edacfa7";
@@ -22,32 +16,22 @@ class CidaasLoginProvider  {
   static String redirectUri = "https://nightlybuild.cidaas.de/apps-srv/ping";
 
   //check current this.accesstoken is available and not expired
-  bool get isAuth {
-    var assertionIsAuth = (token != null);
+  static Future<bool> get isAuth async {
+    var assertionIsAuth = (await token != null);
     return assertionIsAuth;
   }
 
- TokenEntity get tokenEntity => this._tokenEntity;
-
   // token return null if token is expired, else it returns a the accessToken as String
-  String get token {
-    if (_tokenEntity != null && _tokenEntity.accessToken != null) {
+  static Future<String> get token async {
+    TokenEntity _tokenEntity = await getStoredAccessToken();
+    print("Token in get Token " + _tokenEntity.toString());
+    if (_tokenEntity != null && (_tokenEntity.accessToken != null && _tokenEntity.accessToken.isNotEmpty || _tokenEntity.idToken != null && _tokenEntity.idToken.isNotEmpty)) {
       //call cidaasprovider method - check accessToken valid
       var tokenInfo =
-      CidaasLoginProvider.isAccessTokenExpired(_tokenEntity.accessToken);
+          CidaasLoginProvider.isAccessTokenExpired(_tokenEntity.accessToken);
       return (tokenInfo != null) ? _tokenEntity.accessToken : null;
     }
     return null;
-  }
-
-  /// 1. Checks if the available AccessToken is expired (<60 sec)
-  /// 1.1. If yes tries to get a new accessToken via stored refresh_token
-  /// 2. If successful, sets the the access_token
-  /// 3. returns true if successful
-  Future<bool> refreshLoginFromCache() async {
-    TokenEntity entity = await getStoredAccessToken();
-    if (entity != null) this._tokenEntity = entity;
-    return (entity != null);
   }
 
   //// static methods
@@ -58,7 +42,8 @@ class CidaasLoginProvider  {
   }
 
   // returns the accessToken By Code for Login purpose
-  Future<TokenEntity> getAccessTokenByCode(String code) async {
+  static Future<TokenEntity> getAccessTokenByCode(String code) async {
+    print("Start getAccessTokenByCode with code: " + code);
     try {
       final tokenResponse = await HTTPHelper.postData(
           url: "${CidaasLoginProvider.baseUrl}/token-srv/token",
@@ -70,27 +55,22 @@ class CidaasLoginProvider  {
             "redirect_uri": CidaasLoginProvider.redirectUri,
           },
           headers: {});
+      print("TokenResponse in getAccessTokenByCode: " + tokenResponse.toString());
       if (tokenResponse != null) {
         final tokenEntity = TokenEntity.fromJson(tokenResponse);
-        await _authHandler.persistTokenEntity(tokenEntity);
-        final idToken = tokenResponse["id_token"];
-        final parsedInfo = await parseToken(idToken);
-        if (tokenEntity != null) this._tokenEntity = tokenEntity;
+        await _authStorageHelper.persistTokenEntity(tokenEntity);
         return tokenEntity;
       }
     } catch (e) {
-      print("Catch Block");
+      print("get Access Token By Code threw error");
       print(e);
     }
     return null;
   }
 
-  bool inRefreshTokenOperation = false;
-
-  Future<TokenEntity> renewAccessTokenByRefreshToken(
+  static Future<TokenEntity> renewAccessTokenByRefreshToken(
       String refreshToken) async {
     try {
-      inRefreshTokenOperation = true;
       final tokenResponse = await HTTPHelper.postData(
           url: "${CidaasLoginProvider.baseUrl}/token-srv/token",
           data: {
@@ -101,37 +81,38 @@ class CidaasLoginProvider  {
             "redirect_uri": CidaasLoginProvider.redirectUri,
           },
           headers: {});
-      inRefreshTokenOperation = false;
       if (tokenResponse != null) {
         final tokenEntity = TokenEntity.fromJson(tokenResponse);
-        await _authHandler.persistTokenEntity(tokenEntity);
-        final idToken = tokenResponse["id_token"];
-        final parsedInfo = await parseToken(idToken);
+        await _authStorageHelper.persistTokenEntity(tokenEntity);
         return tokenEntity;
       }
     } catch (e) {}
-    inRefreshTokenOperation = false;
     return null;
   }
 
-  Future<bool> doLogout() async {
+  static void doLogin(context) async {
+    BlocProvider.of<AuthenticationBloc>(context)
+        .add(AuthenticationStartedEvent());
+  }
+
+  static Future<bool> doLogout(context) async {
     try {
-      final tokenInfo = await _authHandler.getCurrentToken();
+      final tokenInfo = await _authStorageHelper.getCurrentToken();
 
       await HTTPHelper.postData(
           url:
-          "${CidaasLoginProvider
-              .baseUrl}/session/end_session?access_token_hint=${tokenInfo
-              .accessToken}");
+              "${CidaasLoginProvider.baseUrl}/session/end_session?access_token_hint=${tokenInfo.accessToken}");
 
       // Clear all local dbs
-      //await UserDBHelper.deleteAllUser();
-      await _authHandler.deleteToken();
-      _tokenEntity = null;
+      await _authStorageHelper.deleteToken();
+      BlocProvider.of<AuthenticationBloc>(context)
+          .add(AuthenticationLoggedOutEvent());
 
       return true;
-    } catch (e) {}
-    return null;
+    } catch (e) {
+      stderr.addError("Log out failed: ", e);
+    }
+    return false;
   }
 
   static String _decodeBase64(String str) {
@@ -160,11 +141,11 @@ class CidaasLoginProvider  {
       return null;
     }
     final decClaimSet =
-    CidaasLoginProvider._decodeBase64(accessToken.split(".")[1]);
-    print(decClaimSet);
+        CidaasLoginProvider._decodeBase64(accessToken.split(".")[1]);
+    print("isAccessTokenExpired: " + decClaimSet);
     var tokenInfo = json.decode(decClaimSet);
     final expiresAt =
-    DateTime.fromMillisecondsSinceEpoch(tokenInfo['exp'] * 1000);
+        DateTime.fromMillisecondsSinceEpoch(tokenInfo['exp'] * 1000);
     Duration difference = expiresAt.difference(DateTime.now());
     return (difference.inSeconds < 60) ? null : tokenInfo;
   }
@@ -172,34 +153,26 @@ class CidaasLoginProvider  {
   /// return DBTokenEntity if available and not expired and baseUrl fits
   /// return Renewed Entity if refreshtoken is available, and call returned a value
   /// else return null
-  Future<TokenEntity> getStoredAccessToken() async {
-    TokenEntity dbEntity = await _authHandler.getCurrentToken();
-    if (dbEntity == null) return null;
+  static Future<TokenEntity> getStoredAccessToken() async {
+    TokenEntity dbEntity = await _authStorageHelper.getCurrentToken();
+    print("DBEntity in getStored AccessToken " + dbEntity.toString());
+    if (dbEntity == null || dbEntity.accessToken == null || dbEntity.accessToken.isEmpty) return null;
     var tokenInfo = isAccessTokenExpired(dbEntity.accessToken);
     if (tokenInfo != null && tokenInfo['iss'] != CidaasLoginProvider.baseUrl) {
       // Clear all local dbs
-      await _authHandler.deleteToken();
+      await _authStorageHelper.deleteToken();
       return null;
     } else if (tokenInfo != null) {
       return dbEntity;
     } else {
-      var newEntity = await renewAccessTokenByRefreshToken(
-          dbEntity.refreshToken);
+      var newEntity =
+          await renewAccessTokenByRefreshToken(dbEntity.refreshToken);
       return newEntity;
     }
   }
 
-  Future<UserInfoEntity> parseToken(String token) async {
+  static Map<String, dynamic> getTokenClaimSetForToken(String token) {
     final decClaimSet = _decodeBase64(token.split(".")[1]);
-    print(decClaimSet);
-    final tokenInfo = json.decode(decClaimSet);
-    if (tokenInfo != null && tokenInfo['iss'] != CidaasLoginProvider.baseUrl) {
-      // Clear all local dbs
-      await _authHandler.deleteToken();
-      return null;
-    } else {
-      var tokInfo = UserInfoEntity.fromJson(tokenInfo);
-      return tokInfo;
-    }
+    return json.decode(decClaimSet);
   }
 }

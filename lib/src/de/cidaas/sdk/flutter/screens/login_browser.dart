@@ -7,10 +7,9 @@ import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:flutter/material.dart';
 
 class LoginBrowser extends StatefulWidget {
-  final AuthStorageHelper authStorageHelper;
   final String routeTo;
 
-  LoginBrowser({Key key, @required this.authStorageHelper, this.routeTo}) : super(key: key);
+  LoginBrowser({Key key, this.routeTo}) : super(key: key);
 
   @override
   _LoginBrowserState createState() => _LoginBrowserState(this.routeTo);
@@ -19,8 +18,6 @@ class LoginBrowser extends StatefulWidget {
 class _LoginBrowserState extends State<LoginBrowser> {
   AuthenticationBloc _authenticationBloc;
   String _routeTo;
-
-  AuthStorageHelper get authStorageHelper => AuthStorageHelper();
 
   _LoginBrowserState(String routeTo) {
     this._routeTo = routeTo;
@@ -42,10 +39,11 @@ class _LoginBrowserState extends State<LoginBrowser> {
       if (url.startsWith(CidaasLoginProvider.redirectUri)) {
         final parsedUrl = Uri.parse(url);
         final code = parsedUrl.queryParameters["code"];
+        print("Code in LoginBrowser " + code);
         print(code);
-        final tokenEntity = await CidaasLoginProvider().getAccessTokenByCode(code);
+        final tokenEntity = await CidaasLoginProvider.getAccessTokenByCode(code.toString());
+        print("TokenEntity in LoginBrowser" + tokenEntity.toString());
         if (tokenEntity != null) {
-          print("TokenEntity in LoginBrowser" + tokenEntity.toString());
           _authenticationBloc.add(AuthenticationLoggedInEvent(tokenEntity: tokenEntity));
           flutterWebviewPlugin.close();
           if (this._routeTo?.isNotEmpty ?? false) {

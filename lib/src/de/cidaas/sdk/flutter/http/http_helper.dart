@@ -27,7 +27,7 @@ class HTTPHelper {
       );
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        print(responseData);
+        print("HTTP post responsedata: " + responseData.toString());
         return responseData;
       } else {
         return null;
@@ -59,7 +59,7 @@ class HTTPHelper {
       );
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        print(responseData);
+        print("HTTP get responsedata" + responseData.toString());
         return responseData;
       } else {
         return null;
