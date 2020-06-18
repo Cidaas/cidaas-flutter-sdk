@@ -18,7 +18,7 @@ abstract class Cidaas extends StatelessWidget {
           return getHomePage(tokenEntity: state.tokenEntity);
         }
         if (state is AuthenticationShowLoginWithBrowserState) {
-          return LoginBrowser();
+          return LoginBrowser(splashScreen: getSplashScreen());
         }
         if (state is AuthenticationInProgressState) {
           return getSplashScreen();

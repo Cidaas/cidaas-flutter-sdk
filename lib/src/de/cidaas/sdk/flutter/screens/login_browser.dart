@@ -1,26 +1,31 @@
-import './../authentification/authentication_bloc.dart';
-import './../authentification/authentication_storage_helper.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/entity/cidaas_config.dart';
 
+import './../authentification/authentication_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import './splash_screen.dart';
 import '../cidaas_login_provider.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:flutter/material.dart';
 
 class LoginBrowser extends StatefulWidget {
   final String routeTo;
+  final Widget splashScreen;
+  static const defaultSplashScreen = SplashScreen();
 
-  LoginBrowser({Key key, this.routeTo}) : super(key: key);
+  LoginBrowser({Key key, this.routeTo, this.splashScreen = defaultSplashScreen}) : super(key: key);
 
   @override
-  _LoginBrowserState createState() => _LoginBrowserState(this.routeTo);
+  _LoginBrowserState createState() => _LoginBrowserState(this.routeTo, this.splashScreen);
 }
 
 class _LoginBrowserState extends State<LoginBrowser> {
   AuthenticationBloc _authenticationBloc;
   String _routeTo;
+  Widget _splashScreen;
 
-  _LoginBrowserState(String routeTo) {
+  _LoginBrowserState(String routeTo, Widget splashScreen) {
     this._routeTo = routeTo;
+    this._splashScreen = splashScreen;
   }
 
   @override
@@ -28,15 +33,16 @@ class _LoginBrowserState extends State<LoginBrowser> {
     super.initState();
     _authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
   }
-
-  var initUrl = CidaasLoginProvider.getLoginURL();
+  
   final comKey = Key('login');
   @override
   Widget build(BuildContext context) {
     final flutterWebviewPlugin = new FlutterWebviewPlugin();
 
     flutterWebviewPlugin.onUrlChanged.listen((String url) async {
-      if (url.startsWith(CidaasLoginProvider.redirectUri)) {
+      CidaasConfig _config = await CidaasLoginProvider.getCidaasConf();
+      print("RedirectURI in Login Browser: " + _config.redirectURI.toString());
+      if (url.startsWith(_config.redirectURI)) {
         final parsedUrl = Uri.parse(url);
         final code = parsedUrl.queryParameters["code"];
         print("Code in LoginBrowser " + code);
@@ -56,16 +62,26 @@ class _LoginBrowserState extends State<LoginBrowser> {
       }
     });
 
-    Widget getWebView(){
-      return WebviewScaffold(
-        key: comKey,
-        url: this.initUrl,
-        withJavascript: true,
-        displayZoomControls: false,
-        withZoom: false,
-        withLocalStorage: true,
-        hidden: true
-      );
+    Widget getWebView() {
+      Future<String> _initURL = CidaasLoginProvider.getLoginURL();
+      _initURL.then((val) => print("initURL: " + val.toString()));
+      return FutureBuilder<String>(
+        future: _initURL, // a previously-obtained Future<String> or null
+        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+          if (snapshot.hasData) {
+            return WebviewScaffold(
+                key: comKey,
+                url: snapshot.data,
+                withJavascript: true,
+                displayZoomControls: false,
+                withZoom: false,
+                withLocalStorage: true,
+                hidden: true
+            );
+          } else {
+            return this._splashScreen;
+          }
+        });
     }
 
     return BlocListener<AuthenticationBloc, AuthenticationState>(

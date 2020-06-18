@@ -2,18 +2,73 @@ import 'dart:convert';
 import 'dart:io';
 import 'authentification/authentication_storage_helper.dart';
 import 'entity/token_entity.dart';
+import 'entity/cidaas_config.dart';
+import 'entity/openid_configuration.dart';
 import 'http/http_helper.dart';
 import './authentification/authentication_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class CidaasLoginProvider {
   static final AuthStorageHelper _authStorageHelper = AuthStorageHelper();
 
-  static String baseUrl = "https://nightlybuild.cidaas.de";
-  static String clientId = "07c4e2dd-cf5b-4c82-9fc9-67da2edacfa7";
-  static String clientSecret = "faebad89-ee5e-4b03-8f50-69975f80bee6";
-  static String scopes = "openid profile email";
-  static String redirectUri = "https://nightlybuild.cidaas.de/apps-srv/ping";
+  static CidaasConfig _cidaasConf;
+  static OpenIdConfiguration _openIdConfiguration;
+
+  static Future<OpenIdConfiguration> checkAndLoadConfig({configDir = "assets/cidaas_config.json"}) async {
+    print("Start load config");
+    if (_cidaasConf == null || _cidaasConf.baseUrl.isEmpty || _openIdConfiguration == null || _openIdConfiguration.authorizationEndpoint.isEmpty) {
+      Map configMap = jsonDecode(await rootBundle.loadString(configDir));
+      CidaasConfig conf = CidaasConfig.fromJson(configMap);
+      if (conf.baseUrl == null) {
+        throw("Error reading the cidaas baseURL from file: " + configDir);
+      }
+      if (conf.clientId == null) {
+        throw("clientId is not set in cidaas config: " + configDir);
+      }
+      if (conf.clientSecret == null) {
+        throw("clientSecret is not set in cidaas config: " + configDir);
+      }
+      if (conf.redirectURI == null) {
+        throw("redirectUri is not set in cidaas config: " + configDir);
+      }
+      _cidaasConf = conf;
+      print("Loaded cidaas config: " + conf.toString());
+      try {
+        final configResponse = await HTTPHelper.getData(
+            url: conf.wellKnownURI,
+            headers: {});
+        print("Well-Known config response: " + configResponse.toString());
+        if (configResponse != null) {
+          _openIdConfiguration = OpenIdConfiguration.fromJson(new Map<String, dynamic>.from(configResponse));
+          print(_openIdConfiguration.toString());
+          return _openIdConfiguration;
+        } else {
+          throw("Response from well-known endpoint ${conf.wellKnownURI} is null!");
+        }
+      } catch (e) {
+        throw("Could not get well known configuration from ${conf.wellKnownURI}! Error: ${e.toString()}");
+      }
+    }
+    return _openIdConfiguration;
+  }
+
+  static Future<CidaasConfig> getCidaasConf() async{
+    if (CidaasLoginProvider._cidaasConf != null) {
+      return CidaasLoginProvider._cidaasConf;
+    } else {
+      await checkAndLoadConfig();
+      return CidaasLoginProvider._cidaasConf;
+    }
+  }
+
+  static Future<OpenIdConfiguration> getOpenIdConfiguration() async{
+    if (CidaasLoginProvider._openIdConfiguration != null) {
+      return CidaasLoginProvider._openIdConfiguration;
+    } else {
+      return await checkAndLoadConfig();
+    }
+  }
 
   //check current this.accesstoken is available and not expired
   static Future<bool> get isAuth async {
@@ -35,24 +90,33 @@ class CidaasLoginProvider {
   }
 
   //// static methods
-  static getLoginURL() {
-    final _scopes = Uri.encodeComponent(scopes);
-    final _redirectUri = Uri.encodeComponent(redirectUri);
-    return '${CidaasLoginProvider.baseUrl}/authz-srv/authz?client_id=${CidaasLoginProvider.clientId}&response_type=code&scope=${_scopes}&redirect_uri=${_redirectUri}';
+  static Future<String> getLoginURL() async {
+    OpenIdConfiguration conf = await checkAndLoadConfig();
+    print(conf.toString());
+    String _scopes;
+    if (_cidaasConf.scopes != null && _cidaasConf.scopes.isNotEmpty) {
+      _scopes = Uri.encodeComponent(_cidaasConf.scopes);
+    }
+    String _redirectUri;
+    if (_cidaasConf.redirectURI != null && _cidaasConf.redirectURI.isNotEmpty) {
+      _redirectUri = Uri.encodeComponent(_cidaasConf.redirectURI);
+    }
+    return '${conf.authorizationEndpoint}?client_id=${_cidaasConf.clientId}&response_type=code&scope=${_scopes}&redirect_uri=${_redirectUri}';
   }
 
   // returns the accessToken By Code for Login purpose
   static Future<TokenEntity> getAccessTokenByCode(String code) async {
     print("Start getAccessTokenByCode with code: " + code);
+    OpenIdConfiguration conf = await checkAndLoadConfig();
     try {
       final tokenResponse = await HTTPHelper.postData(
-          url: "${CidaasLoginProvider.baseUrl}/token-srv/token",
+          url: "${conf.tokenEndpoint}",
           data: {
             "grant_type": "authorization_code",
-            "client_id": CidaasLoginProvider.clientId,
-            "client_secret": CidaasLoginProvider.clientSecret,
+            "client_id": _cidaasConf.clientId,
+            "client_secret": _cidaasConf.clientSecret,
             "code": code,
-            "redirect_uri": CidaasLoginProvider.redirectUri,
+            "redirect_uri": _cidaasConf.redirectURI,
           },
           headers: {});
       print("TokenResponse in getAccessTokenByCode: " + tokenResponse.toString());
@@ -71,14 +135,15 @@ class CidaasLoginProvider {
   static Future<TokenEntity> renewAccessTokenByRefreshToken(
       String refreshToken) async {
     try {
+      OpenIdConfiguration conf = await checkAndLoadConfig();
       final tokenResponse = await HTTPHelper.postData(
-          url: "${CidaasLoginProvider.baseUrl}/token-srv/token",
+          url: "${conf.tokenEndpoint}",
           data: {
             "grant_type": "refresh_token",
-            "client_id": CidaasLoginProvider.clientId,
-            "client_secret": CidaasLoginProvider.clientSecret,
+            "client_id": _cidaasConf.clientId,
+            "client_secret": _cidaasConf.clientSecret,
             "refresh_token": refreshToken,
-            "redirect_uri": CidaasLoginProvider.redirectUri,
+            "redirect_uri": _cidaasConf.redirectURI,
           },
           headers: {});
       if (tokenResponse != null) {
@@ -97,11 +162,12 @@ class CidaasLoginProvider {
 
   static Future<bool> doLogout(context) async {
     try {
+      OpenIdConfiguration conf = await checkAndLoadConfig();
       final tokenInfo = await _authStorageHelper.getCurrentToken();
 
       await HTTPHelper.postData(
           url:
-              "${CidaasLoginProvider.baseUrl}/session/end_session?access_token_hint=${tokenInfo.accessToken}");
+              "${conf.endSessionEndpoint}?access_token_hint=${tokenInfo.accessToken}");
 
       // Clear all local dbs
       await _authStorageHelper.deleteToken();
@@ -158,7 +224,8 @@ class CidaasLoginProvider {
     print("DBEntity in getStored AccessToken " + dbEntity.toString());
     if (dbEntity == null || dbEntity.accessToken == null || dbEntity.accessToken.isEmpty) return null;
     var tokenInfo = isAccessTokenExpired(dbEntity.accessToken);
-    if (tokenInfo != null && tokenInfo['iss'] != CidaasLoginProvider.baseUrl) {
+    await checkAndLoadConfig(); //_cidaasConf must be set
+    if (tokenInfo != null && tokenInfo['iss'] != _cidaasConf.baseUrl) {
       // Clear all local dbs
       await _authStorageHelper.deleteToken();
       return null;
