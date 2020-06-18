@@ -118,4 +118,7 @@ class OpenIdConfiguration {
     'op_tos_uri': opTosUri,
     'scim_endpoint': scimEndpoint,
   };
+
+  @override
+  String toString() => 'OpenIdConfiguration ${toJson().toString()}';
 }

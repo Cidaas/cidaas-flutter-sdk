@@ -24,4 +24,6 @@ class TokenEntity {
     'refresh_token': refreshToken,
   };
 
+  @override
+  String toString() => 'TokenEntity ${toJson().toString()}';
 }

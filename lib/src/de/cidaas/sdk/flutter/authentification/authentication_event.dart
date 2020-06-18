@@ -12,7 +12,7 @@ class AuthenticationLoggedInEvent extends AuthenticationEvent {
   const AuthenticationLoggedInEvent({@required this.tokenEntity});
 
   @override
-  String toString() => 'LoggedIn { tokenEntity: $tokenEntity }';
+  String toString() => 'AuthenticationLoggedInEvent { tokenEntity: $tokenEntity }';
 }
 
 class AuthenticationLoggedOutEvent extends AuthenticationEvent {}

@@ -15,13 +15,19 @@ class CidaasLoginProvider {
   static CidaasConfig _cidaasConf;
   static OpenIdConfiguration _openIdConfiguration;
 
-  static Future<OpenIdConfiguration> checkAndLoadConfig({configDir = "assets/cidaas_config.json"}) async {
-    print("Start load config");
-    if (_cidaasConf == null || _cidaasConf.baseUrl.isEmpty || _openIdConfiguration == null || _openIdConfiguration.authorizationEndpoint.isEmpty) {
+  static Future<OpenIdConfiguration> checkAndLoadConfig(
+      {configDir = "assets/cidaas_config.json"}) async {
+    if (_cidaasConf == null || _cidaasConf.baseUrl.isEmpty ||
+        _openIdConfiguration == null ||
+        _openIdConfiguration.authorizationEndpoint.isEmpty) {
       Map configMap = jsonDecode(await rootBundle.loadString(configDir));
       CidaasConfig conf = CidaasConfig.fromJson(configMap);
       if (conf.baseUrl == null) {
         throw("Error reading the cidaas baseURL from file: " + configDir);
+      }
+      if (conf.baseUrl.startsWith("http") && !conf.baseUrl.startsWith("https")) {
+        //Don't get a token via http!
+        throw("ConfigurationError: Please use 'https' in the baseURL instead of 'http'");
       }
       if (conf.clientId == null) {
         throw("clientId is not set in cidaas config: " + configDir);
@@ -33,27 +39,27 @@ class CidaasLoginProvider {
         throw("redirectUri is not set in cidaas config: " + configDir);
       }
       _cidaasConf = conf;
-      print("Loaded cidaas config: " + conf.toString());
       try {
         final configResponse = await HTTPHelper.getData(
             url: conf.wellKnownURI,
             headers: {});
-        print("Well-Known config response: " + configResponse.toString());
         if (configResponse != null) {
-          _openIdConfiguration = OpenIdConfiguration.fromJson(new Map<String, dynamic>.from(configResponse));
-          print(_openIdConfiguration.toString());
+          _openIdConfiguration = OpenIdConfiguration.fromJson(
+              new Map<String, dynamic>.from(configResponse));
           return _openIdConfiguration;
         } else {
-          throw("Response from well-known endpoint ${conf.wellKnownURI} is null!");
+          throw("Response from well-known endpoint ${conf
+              .wellKnownURI} is null!");
         }
       } catch (e) {
-        throw("Could not get well known configuration from ${conf.wellKnownURI}! Error: ${e.toString()}");
+        throw("Could not get well known configuration from ${conf
+            .wellKnownURI}! Error: ${e.toString()}");
       }
     }
     return _openIdConfiguration;
   }
 
-  static Future<CidaasConfig> getCidaasConf() async{
+  static Future<CidaasConfig> getCidaasConf() async {
     if (CidaasLoginProvider._cidaasConf != null) {
       return CidaasLoginProvider._cidaasConf;
     } else {
@@ -62,7 +68,7 @@ class CidaasLoginProvider {
     }
   }
 
-  static Future<OpenIdConfiguration> getOpenIdConfiguration() async{
+  static Future<OpenIdConfiguration> getOpenIdConfiguration() async {
     if (CidaasLoginProvider._openIdConfiguration != null) {
       return CidaasLoginProvider._openIdConfiguration;
     } else {
@@ -71,28 +77,14 @@ class CidaasLoginProvider {
   }
 
   //check current this.accesstoken is available and not expired
-  static Future<bool> get isAuth async {
-    var assertionIsAuth = (await token != null);
-    return assertionIsAuth;
-  }
-
-  // token return null if token is expired, else it returns a the accessToken as String
-  static Future<String> get token async {
-    TokenEntity _tokenEntity = await getStoredAccessToken();
-    print("Token in get Token " + _tokenEntity.toString());
-    if (_tokenEntity != null && (_tokenEntity.accessToken != null && _tokenEntity.accessToken.isNotEmpty || _tokenEntity.idToken != null && _tokenEntity.idToken.isNotEmpty)) {
-      //call cidaasprovider method - check accessToken valid
-      var tokenInfo =
-          CidaasLoginProvider.isAccessTokenExpired(_tokenEntity.accessToken);
-      return (tokenInfo != null) ? _tokenEntity.accessToken : null;
-    }
-    return null;
+  static Future<bool> isAuth() async {
+    bool _isAuth = (await getStoredAccessToken()) != null;
+    return _isAuth;
   }
 
   //// static methods
   static Future<String> getLoginURL() async {
     OpenIdConfiguration conf = await checkAndLoadConfig();
-    print(conf.toString());
     String _scopes;
     if (_cidaasConf.scopes != null && _cidaasConf.scopes.isNotEmpty) {
       _scopes = Uri.encodeComponent(_cidaasConf.scopes);
@@ -101,12 +93,12 @@ class CidaasLoginProvider {
     if (_cidaasConf.redirectURI != null && _cidaasConf.redirectURI.isNotEmpty) {
       _redirectUri = Uri.encodeComponent(_cidaasConf.redirectURI);
     }
-    return '${conf.authorizationEndpoint}?client_id=${_cidaasConf.clientId}&response_type=code&scope=${_scopes}&redirect_uri=${_redirectUri}';
+    return '${conf.authorizationEndpoint}?client_id=${_cidaasConf
+        .clientId}&response_type=code&scope=${_scopes}&redirect_uri=${_redirectUri}';
   }
 
   // returns the accessToken By Code for Login purpose
   static Future<TokenEntity> getAccessTokenByCode(String code) async {
-    print("Start getAccessTokenByCode with code: " + code);
     OpenIdConfiguration conf = await checkAndLoadConfig();
     try {
       final tokenResponse = await HTTPHelper.postData(
@@ -119,15 +111,13 @@ class CidaasLoginProvider {
             "redirect_uri": _cidaasConf.redirectURI,
           },
           headers: {});
-      print("TokenResponse in getAccessTokenByCode: " + tokenResponse.toString());
       if (tokenResponse != null) {
         final tokenEntity = TokenEntity.fromJson(tokenResponse);
         await _authStorageHelper.persistTokenEntity(tokenEntity);
         return tokenEntity;
       }
     } catch (e) {
-      print("get Access Token By Code threw error");
-      print(e);
+      throw(e);
     }
     return null;
   }
@@ -167,7 +157,8 @@ class CidaasLoginProvider {
 
       await HTTPHelper.postData(
           url:
-              "${conf.endSessionEndpoint}?access_token_hint=${tokenInfo.accessToken}");
+          "${conf.endSessionEndpoint}?access_token_hint=${tokenInfo
+              .accessToken}");
 
       // Clear all local dbs
       await _authStorageHelper.deleteToken();
@@ -203,41 +194,45 @@ class CidaasLoginProvider {
   //check if the given accessToken is still valid, and does not expire in less than 60 seconds
   static dynamic isAccessTokenExpired(String accessToken) {
     if (accessToken == null) {
-      print("access token is null");
       return null;
     }
     final decClaimSet =
-        CidaasLoginProvider._decodeBase64(accessToken.split(".")[1]);
-    print("isAccessTokenExpired: " + decClaimSet);
+    CidaasLoginProvider._decodeBase64(accessToken.split(".")[1]);
     var tokenInfo = json.decode(decClaimSet);
     final expiresAt =
-        DateTime.fromMillisecondsSinceEpoch(tokenInfo['exp'] * 1000);
+    DateTime.fromMillisecondsSinceEpoch(tokenInfo['exp'] * 1000);
     Duration difference = expiresAt.difference(DateTime.now());
     return (difference.inSeconds < 60) ? null : tokenInfo;
   }
 
-  /// return DBTokenEntity if available and not expired and baseUrl fits
-  /// return Renewed Entity if refreshtoken is available, and call returned a value
-  /// else return null
+  /// Returns the stored access_token if it is valid.
+  /// If the token is expired it will try to get a new access_token via the stored refresh_token.
+  /// If no token is stored, returns null
   static Future<TokenEntity> getStoredAccessToken() async {
     TokenEntity dbEntity = await _authStorageHelper.getCurrentToken();
-    print("DBEntity in getStored AccessToken " + dbEntity.toString());
-    if (dbEntity == null || dbEntity.accessToken == null || dbEntity.accessToken.isEmpty) return null;
+    if (dbEntity == null || (dbEntity.accessToken == null ||
+        dbEntity.accessToken.isEmpty)) {
+      return null;
+    }
     var tokenInfo = isAccessTokenExpired(dbEntity.accessToken);
     await checkAndLoadConfig(); //_cidaasConf must be set
-    if (tokenInfo != null && tokenInfo['iss'] != _cidaasConf.baseUrl) {
+    if (tokenInfo == null) {
+      //tokenInfo = null -> renew Access token
+      var newEntity =
+      await renewAccessTokenByRefreshToken(dbEntity.refreshToken);
+      return newEntity;
+    } else if (tokenInfo['iss'] != _cidaasConf.baseUrl) {
       // Clear all local dbs
       await _authStorageHelper.deleteToken();
       return null;
-    } else if (tokenInfo != null) {
-      return dbEntity;
     } else {
-      var newEntity =
-          await renewAccessTokenByRefreshToken(dbEntity.refreshToken);
-      return newEntity;
+      //token Info is set-> token is valid
+      return dbEntity;
     }
   }
 
+  /// Returns the claim set for the provided token
+  /// To be used with the received id_token or access token
   static Map<String, dynamic> getTokenClaimSetForToken(String token) {
     final decClaimSet = _decodeBase64(token.split(".")[1]);
     return json.decode(decClaimSet);

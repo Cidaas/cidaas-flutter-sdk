@@ -34,4 +34,7 @@ class CidaasConfig {
         'scopes': scopes,
         'redirectUri': redirectURI,
       };
+
+  @override
+  String toString() => 'CidaasConfig ${toJson().toString()}';
 }

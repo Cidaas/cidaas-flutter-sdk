@@ -8,23 +8,24 @@ import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:flutter/material.dart';
 
 class LoginBrowser extends StatefulWidget {
-  final String routeTo;
+  final String reRouteToAfterLogin;
   final Widget splashScreen;
-  static const defaultSplashScreen = SplashScreen();
 
-  LoginBrowser({Key key, this.routeTo, this.splashScreen = defaultSplashScreen}) : super(key: key);
+  LoginBrowser({Key key, this.reRouteToAfterLogin, @required this.splashScreen})
+      : super(key: key);
 
   @override
-  _LoginBrowserState createState() => _LoginBrowserState(this.routeTo, this.splashScreen);
+  _LoginBrowserState createState() =>
+      _LoginBrowserState(this.reRouteToAfterLogin, this.splashScreen);
 }
 
 class _LoginBrowserState extends State<LoginBrowser> {
   AuthenticationBloc _authenticationBloc;
-  String _routeTo;
+  String _reRouteToAfterLogin;
   Widget _splashScreen;
 
-  _LoginBrowserState(String routeTo, Widget splashScreen) {
-    this._routeTo = routeTo;
+  _LoginBrowserState(String reRouteToAfterLogin, Widget splashScreen) {
+    this._reRouteToAfterLogin = reRouteToAfterLogin;
     this._splashScreen = splashScreen;
   }
 
@@ -33,55 +34,74 @@ class _LoginBrowserState extends State<LoginBrowser> {
     super.initState();
     _authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
   }
-  
+
   final comKey = Key('login');
-  @override
-  Widget build(BuildContext context) {
+
+  addListener(CidaasConfig config) {
     final flutterWebviewPlugin = new FlutterWebviewPlugin();
 
-    flutterWebviewPlugin.onUrlChanged.listen((String url) async {
-      CidaasConfig _config = await CidaasLoginProvider.getCidaasConf();
-      print("RedirectURI in Login Browser: " + _config.redirectURI.toString());
-      if (url.startsWith(_config.redirectURI)) {
+    flutterWebviewPlugin.onUrlChanged
+        .listen((String url) async {
+      if (url.startsWith(config.redirectURI)) {
         final parsedUrl = Uri.parse(url);
         final code = parsedUrl.queryParameters["code"];
-        print("Code in LoginBrowser " + code);
-        print(code);
-        final tokenEntity = await CidaasLoginProvider.getAccessTokenByCode(code.toString());
-        print("TokenEntity in LoginBrowser" + tokenEntity.toString());
+        final tokenEntity =
+        await CidaasLoginProvider.getAccessTokenByCode(
+            code.toString());
         if (tokenEntity != null) {
-          _authenticationBloc.add(AuthenticationLoggedInEvent(tokenEntity: tokenEntity));
+          _authenticationBloc.add(AuthenticationLoggedInEvent(
+              tokenEntity: tokenEntity));
           flutterWebviewPlugin.close();
-          if (this._routeTo?.isNotEmpty ?? false) {
-            Navigator.of(context)
-                .pushReplacementNamed(this._routeTo, arguments: tokenEntity);
+          if (this._reRouteToAfterLogin?.isNotEmpty ??
+              false) {
+            Navigator.of(context).pushReplacementNamed(
+                this._reRouteToAfterLogin,
+                arguments: tokenEntity);
           }
         } else {
           flutterWebviewPlugin.show();
         }
       }
     });
+  }
 
+  @override
+  Widget build(BuildContext context) {
     Widget getWebView() {
       Future<String> _initURL = CidaasLoginProvider.getLoginURL();
-      _initURL.then((val) => print("initURL: " + val.toString()));
       return FutureBuilder<String>(
-        future: _initURL, // a previously-obtained Future<String> or null
-        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-          if (snapshot.hasData) {
-            return WebviewScaffold(
-                key: comKey,
-                url: snapshot.data,
-                withJavascript: true,
-                displayZoomControls: false,
-                withZoom: false,
-                withLocalStorage: true,
-                hidden: true
-            );
-          } else {
-            return this._splashScreen;
-          }
-        });
+          future: _initURL, // a previously-obtained Future<String> or null
+          builder: (BuildContext context, AsyncSnapshot<String> urlSnapshot) {
+            if (urlSnapshot.hasData) {
+              Future<CidaasConfig> _config =
+                  CidaasLoginProvider.getCidaasConf();
+              return FutureBuilder<CidaasConfig>(
+                  future: _config,
+                  // a previously-obtained Future<String> or null
+                  builder: (BuildContext context,
+                      AsyncSnapshot<CidaasConfig> configSnapshot) {
+                    if (configSnapshot.hasData) {
+                      addListener(configSnapshot.data);
+                      return WebviewScaffold(
+                          key: comKey,
+                          url: urlSnapshot.data,
+                          withJavascript: true,
+                          displayZoomControls: false,
+                          withZoom: false,
+                          withLocalStorage: true,
+                          hidden: true);
+                    } else if (configSnapshot.hasError) {
+                      return Text('${configSnapshot.error}');
+                    } else {
+                      return this._splashScreen;
+                    }
+                  });
+            } else if (urlSnapshot.hasError) {
+              return Text('${urlSnapshot.error}');
+            } else {
+              return this._splashScreen;
+            }
+          });
     }
 
     return BlocListener<AuthenticationBloc, AuthenticationState>(

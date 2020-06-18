@@ -14,7 +14,7 @@ class AuthenticationSuccessState extends AuthenticationState {
   }
 
   @override
-  String toString() => 'LoggedIn { tokenEntity: $tokenEntity }';
+  String toString() => 'AuthenticationSuccessState { tokenEntity: $tokenEntity }';
 }
 
 class AuthenticationFailureState extends AuthenticationState {
@@ -23,7 +23,7 @@ class AuthenticationFailureState extends AuthenticationState {
   const AuthenticationFailureState({@required this.error});
 
   @override
-  String toString() => 'AuthenticationFailure { error: $error }';
+  String toString() => 'AuthenticationFailureState { error: $error }';
 }
 
 class AuthenticationShowLoginWithBrowserState extends AuthenticationState {}

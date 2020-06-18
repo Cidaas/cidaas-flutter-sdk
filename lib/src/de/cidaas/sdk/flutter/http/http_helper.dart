@@ -27,13 +27,12 @@ class HTTPHelper {
       );
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        print("HTTP post responsedata: " + responseData.toString());
         return responseData;
       } else {
         return null;
       }
     } catch (e) {
-      print(e);
+      throw(e);
       return null;
     }
   }
@@ -59,13 +58,12 @@ class HTTPHelper {
       );
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        print("HTTP get responsedata" + responseData.toString());
         return responseData;
       } else {
         return null;
       }
     } catch (e) {
-      print(e);
+      throw(e);
       return null;
     }
   }

@@ -21,7 +21,7 @@ class AuthenticationBloc
   final AuthStorageHelper authStorageHelper = AuthStorageHelper();
 
   @override
-  AuthenticationState get initialState => AuthenticationShowLoginWithBrowserState();
+  AuthenticationState get initialState => AuthenticationHasLoggedOutState();
 
   @override
   Stream<AuthenticationState> mapEventToState(
@@ -29,14 +29,16 @@ class AuthenticationBloc
   ) async* {
     if (event is AuthenticationStartedEvent) {
       yield AuthenticationInProgressState();
-      final bool isAuthorized = await CidaasLoginProvider.isAuth;
-      final token = await authStorageHelper.getCurrentToken();
-      print("Token in Bloc from storage: " + token.toString());
+      try {
 
-      if (isAuthorized) {
-        yield AuthenticationSuccessState(tokenEntity: await authStorageHelper.getCurrentToken());
-      } else {
-        yield AuthenticationShowLoginWithBrowserState();
+        if (await CidaasLoginProvider.isAuth()) {
+          yield AuthenticationSuccessState(
+              tokenEntity: await authStorageHelper.getCurrentToken());
+        } else {
+          yield AuthenticationShowLoginWithBrowserState();
+        }
+      } catch (e) {
+        yield AuthenticationFailureState(error: e);
       }
     }
 
