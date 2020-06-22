@@ -33,7 +33,6 @@ class HTTPHelper {
       }
     } catch (e) {
       throw(e);
-      return null;
     }
   }
 
@@ -64,7 +63,6 @@ class HTTPHelper {
       }
     } catch (e) {
       throw(e);
-      return null;
     }
   }
 }

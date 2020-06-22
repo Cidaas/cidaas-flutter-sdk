@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+/// The cidaas configuration
 class CidaasConfig {
 
   String baseUrl;

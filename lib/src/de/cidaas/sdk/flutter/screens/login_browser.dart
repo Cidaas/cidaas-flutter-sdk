@@ -2,7 +2,6 @@ import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/entity/cidaas_config.
 
 import './../authentification/authentication_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import './splash_screen.dart';
 import '../cidaas_login_provider.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:flutter/material.dart';
@@ -91,37 +90,21 @@ class _LoginBrowserState extends State<LoginBrowser> {
                           withLocalStorage: true,
                           hidden: true);
                     } else if (configSnapshot.hasError) {
-                      return Text('${configSnapshot.error}');
+                      // The config needs to be set by the developer
+                      throw configSnapshot.error;
                     } else {
                       return this._splashScreen;
                     }
                   });
             } else if (urlSnapshot.hasError) {
-              return Text('${urlSnapshot.error}');
+              // The url needs to be set in the config by the developer
+              throw urlSnapshot.error;
             } else {
               return this._splashScreen;
             }
           });
     }
 
-    return BlocListener<AuthenticationBloc, AuthenticationState>(
-      bloc: _authenticationBloc,
-      listener: (context, state) {
-        if (state is AuthenticationFailureState) {
-          Scaffold.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${state.error}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      },
-      child: BlocBuilder<AuthenticationBloc, AuthenticationState>(
-        bloc: _authenticationBloc,
-        builder: (context, state) {
-          return getWebView();
-        },
-      ),
-    );
+    return getWebView();
   }
 }

@@ -1,3 +1,4 @@
+/// Provides the necessary logic to authenticate users with cidaas, using the oAuth2 Authorization code flow
 library cidaassdkflutter;
 
 export './src/de/cidaas/sdk/flutter/cidaas_login_provider.dart';

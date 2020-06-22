@@ -9,12 +9,18 @@ import './authentification/authentication_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+/// Provides static methods so a user can authenticate himself
 class CidaasLoginProvider {
   static final AuthStorageHelper _authStorageHelper = AuthStorageHelper();
 
   static CidaasConfig _cidaasConf;
   static OpenIdConfiguration _openIdConfiguration;
 
+  /// loads the config file from "assets/cidaas_config.json" or from the provided [configDir] directory path
+  ///
+  /// If the config is already loaded does nothing.
+  /// Checks the provided config file for the necessary fields
+  /// Gets & sets the oauth2 well-known-openId configuration for your cidaas instance
   static Future<OpenIdConfiguration> checkAndLoadConfig(
       {configDir = "assets/cidaas_config.json"}) async {
     if (_cidaasConf == null || _cidaasConf.baseUrl.isEmpty ||
@@ -59,30 +65,41 @@ class CidaasLoginProvider {
     return _openIdConfiguration;
   }
 
-  static Future<CidaasConfig> getCidaasConf() async {
+  /// Returns the loaded cidaas configuration
+  ///
+  /// If no configuration has been loaded before, will load the configuration from the cidaas_config.json file
+  /// In this case, if [configDir] is provided it will load it from this directory
+  static Future<CidaasConfig> getCidaasConf({configDir}) async {
     if (CidaasLoginProvider._cidaasConf != null) {
       return CidaasLoginProvider._cidaasConf;
     } else {
-      await checkAndLoadConfig();
+      await checkAndLoadConfig(configDir: configDir);
       return CidaasLoginProvider._cidaasConf;
     }
   }
 
-  static Future<OpenIdConfiguration> getOpenIdConfiguration() async {
+  /// Returns the loaded openId configuration
+  ///
+  /// If no configuration has been loaded before, will load the configuration from the cidaas_config.json file
+  /// and fetch the well-known openId configuration from your cidaas instance.
+  /// In this case, if [configDir] is provided it will load the cidaas_config.json from tbhe provided [configDir]
+  static Future<OpenIdConfiguration> getOpenIdConfiguration({configDir}) async {
     if (CidaasLoginProvider._openIdConfiguration != null) {
       return CidaasLoginProvider._openIdConfiguration;
     } else {
-      return await checkAndLoadConfig();
+      return await checkAndLoadConfig(configDir: configDir);
     }
   }
 
-  //check current this.accesstoken is available and not expired
+  /// Check if the access_token is available & not expired
   static Future<bool> isAuth() async {
     bool _isAuth = (await getStoredAccessToken()) != null;
     return _isAuth;
   }
 
-  //// static methods
+  /// Returns the login URL
+  ///
+  /// In detail, builds the loginUrl from the provided scopes, redirectUri & client_id
   static Future<String> getLoginURL() async {
     OpenIdConfiguration conf = await checkAndLoadConfig();
     String _scopes;
@@ -97,7 +114,9 @@ class CidaasLoginProvider {
         .clientId}&response_type=code&scope=${_scopes}&redirect_uri=${_redirectUri}';
   }
 
-  // returns the accessToken By Code for Login purpose
+  /// returns the accessToken by the given [code]
+  ///
+  /// calls cidaas to obtain the access_token & persists it via flutter_secure_storage
   static Future<TokenEntity> getAccessTokenByCode(String code) async {
     OpenIdConfiguration conf = await checkAndLoadConfig();
     try {
@@ -122,6 +141,9 @@ class CidaasLoginProvider {
     return null;
   }
 
+  /// Refreshes the access_token by the given [refreshToken]
+  ///
+  /// Returns the updated [TokenEntity]
   static Future<TokenEntity> renewAccessTokenByRefreshToken(
       String refreshToken) async {
     try {
@@ -145,11 +167,18 @@ class CidaasLoginProvider {
     return null;
   }
 
+  /// Starts the login process
+  ///
+  /// The [AuthenticationBloc] must be included in the given [context]
   static void doLogin(context) async {
     BlocProvider.of<AuthenticationBloc>(context)
         .add(AuthenticationStartedEvent());
   }
 
+  /// Starts the logout process
+  ///
+  /// The [AuthenticationBloc] must be included in the given [context]
+  /// Clears the flutter_secure_storage, returns true if successful
   static Future<bool> doLogout(context) async {
     try {
       OpenIdConfiguration conf = await checkAndLoadConfig();
@@ -172,6 +201,7 @@ class CidaasLoginProvider {
     return false;
   }
 
+  /// Decodes the given base64 string [str]
   static String _decodeBase64(String str) {
     String output = str.replaceAll('-', '+').replaceAll('_', '/');
 
@@ -191,7 +221,7 @@ class CidaasLoginProvider {
     return utf8.decode(base64Url.decode(output));
   }
 
-  //check if the given accessToken is still valid, and does not expire in less than 60 seconds
+  /// Check if the given [accessToken] does not expire in less than 60 seconds (or is already expired)
   static dynamic isAccessTokenExpired(String accessToken) {
     if (accessToken == null) {
       return null;
@@ -206,6 +236,7 @@ class CidaasLoginProvider {
   }
 
   /// Returns the stored access_token if it is valid.
+  ///
   /// If the token is expired it will try to get a new access_token via the stored refresh_token.
   /// If no token is stored, returns null
   static Future<TokenEntity> getStoredAccessToken() async {
@@ -232,6 +263,7 @@ class CidaasLoginProvider {
   }
 
   /// Returns the claim set for the provided token
+  ///
   /// To be used with the received id_token or access token
   static Map<String, dynamic> getTokenClaimSetForToken(String token) {
     final decClaimSet = _decodeBase64(token.split(".")[1]);

@@ -1,6 +1,10 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import './../entity/token_entity.dart';
 
+/// The AuthStorageHelper
+///
+/// Encapsulates the required logic to store the [TokenEntity] inside the
+/// flutter_secure_storage
 class AuthStorageHelper {
   static const String ACCESS_TOKEN = "access_token";
   static const String SUB = "sub";
