@@ -1,7 +1,9 @@
 part of 'authentication_bloc.dart';
 
 /// The AuthenticationState
-abstract class AuthenticationState {
+abstract class AuthenticationState extends Equatable {
+  @override
+  List<Object> get props => [];
   const AuthenticationState();
 }
 

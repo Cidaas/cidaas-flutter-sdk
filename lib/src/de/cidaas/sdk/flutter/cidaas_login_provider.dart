@@ -16,33 +16,42 @@ class CidaasLoginProvider {
   static CidaasConfig _cidaasConf;
   static OpenIdConfiguration _openIdConfiguration;
 
-  /// loads the config file from "assets/cidaas_config.json" or from the provided [configDir] directory path
+  /// loads the config file from "assets/cidaas_config.json" or from the provided [configPath] config path
   ///
   /// If the config is already loaded does nothing.
   /// Checks the provided config file for the necessary fields
   /// Gets & sets the oauth2 well-known-openId configuration for your cidaas instance
   static Future<OpenIdConfiguration> checkAndLoadConfig(
-      {configDir = "assets/cidaas_config.json"}) async {
+      {configPath = "assets/cidaas_config.json"}) async {
+    if (configPath == null) {
+      // Dart's default values do not get set when passing null
+      configPath = "assets/cidaas_config.json";
+    }
     if (_cidaasConf == null || _cidaasConf.baseUrl.isEmpty ||
         _openIdConfiguration == null ||
         _openIdConfiguration.authorizationEndpoint.isEmpty) {
-      Map configMap = jsonDecode(await rootBundle.loadString(configDir));
+      Map configMap;
+      try {
+        configMap = jsonDecode(await rootBundle.loadString(configPath));
+      } catch (e) {
+        throw ConfigurationError("Could not load cidaas config from path: " + configPath.toString());
+      }
       CidaasConfig conf = CidaasConfig.fromJson(configMap);
       if (conf.baseUrl == null) {
-        throw("Error reading the cidaas baseURL from file: " + configDir);
+        throw ConfigurationError("Error reading the cidaas baseURL from file: " + configPath.toString());
       }
       if (conf.baseUrl.startsWith("http") && !conf.baseUrl.startsWith("https")) {
         //Don't get a token via http!
-        throw("ConfigurationError: Please use 'https' in the baseURL instead of 'http'");
+        throw ConfigurationError("Please use 'https' in the baseURL instead of 'http'. Config loaded: " + configPath.toString());
       }
       if (conf.clientId == null) {
-        throw("clientId is not set in cidaas config: " + configDir);
+        throw ConfigurationError("clientId is not set in cidaas config: " + configPath.toString());
       }
       if (conf.clientSecret == null) {
-        throw("clientSecret is not set in cidaas config: " + configDir);
+        throw ConfigurationError("clientSecret is not set in cidaas config: " + configPath.toString());
       }
       if (conf.redirectURI == null) {
-        throw("redirectUri is not set in cidaas config: " + configDir);
+        throw ConfigurationError("redirectUri is not set in cidaas config: " + configPath.toString());
       }
       _cidaasConf = conf;
       try {
@@ -50,16 +59,17 @@ class CidaasLoginProvider {
             url: conf.wellKnownURI,
             headers: {});
         if (configResponse != null) {
-          _openIdConfiguration = OpenIdConfiguration.fromJson(
-              new Map<String, dynamic>.from(configResponse));
+          _openIdConfiguration = OpenIdConfiguration.fromJson(configResponse);
           return _openIdConfiguration;
         } else {
-          throw("Response from well-known endpoint ${conf
+          throw WellKnownOpenIdConfigLoadError("Response from well-known endpoint ${conf
               .wellKnownURI} is null!");
         }
-      } catch (e) {
-        throw("Could not get well known configuration from ${conf
-            .wellKnownURI}! Error: ${e.toString()}");
+      } on WellKnownOpenIdConfigLoadError catch(e) {
+        rethrow;
+      } catch (e, s) {
+        throw WellKnownOpenIdConfigLoadError("Could not get well known configuration from ${conf
+            .wellKnownURI}! Error: ${e.toString()}" + s.toString());
       }
     }
     return _openIdConfiguration;
@@ -68,12 +78,12 @@ class CidaasLoginProvider {
   /// Returns the loaded cidaas configuration
   ///
   /// If no configuration has been loaded before, will load the configuration from the cidaas_config.json file
-  /// In this case, if [configDir] is provided it will load it from this directory
-  static Future<CidaasConfig> getCidaasConf({configDir}) async {
+  /// In this case, if [configPath] is provided it will load it from this directory
+  static Future<CidaasConfig> getCidaasConf({configPath}) async {
     if (CidaasLoginProvider._cidaasConf != null) {
       return CidaasLoginProvider._cidaasConf;
     } else {
-      await checkAndLoadConfig(configDir: configDir);
+      await checkAndLoadConfig(configPath: configPath);
       return CidaasLoginProvider._cidaasConf;
     }
   }
@@ -82,12 +92,12 @@ class CidaasLoginProvider {
   ///
   /// If no configuration has been loaded before, will load the configuration from the cidaas_config.json file
   /// and fetch the well-known openId configuration from your cidaas instance.
-  /// In this case, if [configDir] is provided it will load the cidaas_config.json from tbhe provided [configDir]
+  /// In this case, if [configPath] is provided it will load the cidaas_config.json from the provided [configPath]
   static Future<OpenIdConfiguration> getOpenIdConfiguration({configDir}) async {
     if (CidaasLoginProvider._openIdConfiguration != null) {
       return CidaasLoginProvider._openIdConfiguration;
     } else {
-      return await checkAndLoadConfig(configDir: configDir);
+      return await checkAndLoadConfig(configPath: configDir);
     }
   }
 
@@ -162,6 +172,8 @@ class CidaasLoginProvider {
         final tokenEntity = TokenEntity.fromJson(tokenResponse);
         await _authStorageHelper.persistTokenEntity(tokenEntity);
         return tokenEntity;
+      } else {
+        return null;
       }
     } catch (e) {}
     return null;
@@ -223,7 +235,8 @@ class CidaasLoginProvider {
 
   /// Check if the given [accessToken] does not expire in less than 60 seconds (or is already expired)
   static dynamic isAccessTokenExpired(String accessToken) {
-    if (accessToken == null) {
+    if (accessToken == null || accessToken.split(".").length != 3) {
+      //Invalid access_token
       return null;
     }
     final decClaimSet =
@@ -266,7 +279,36 @@ class CidaasLoginProvider {
   ///
   /// To be used with the received id_token or access token
   static Map<String, dynamic> getTokenClaimSetForToken(String token) {
+    if (token.split(".").length != 3) {
+      throw "Invalid Token: " + token;
+    }
     final decClaimSet = _decodeBase64(token.split(".")[1]);
     return json.decode(decClaimSet);
+  }
+
+  /// Removes the loaded config
+  static clearConfig() {
+    _cidaasConf = null;
+    _openIdConfiguration = null;
+  }
+}
+
+class ConfigurationError implements Exception {
+  String cause;
+  ConfigurationError(this.cause);
+
+  @override
+  toString() {
+    return "ConfigurationError: " + cause;
+  }
+}
+
+class WellKnownOpenIdConfigLoadError implements Exception {
+  String cause;
+  WellKnownOpenIdConfigLoadError(this.cause);
+
+  @override
+  toString() {
+    return "WellKnownOpenIdConfigLoadError: " + cause;
   }
 }

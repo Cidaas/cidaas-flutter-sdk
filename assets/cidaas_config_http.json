@@ -1,0 +1,7 @@
+{
+  "baseUrl": "http://baseUrl.de",
+  "clientId": "clientId",
+  "clientSecret": "clientSecret",
+  "scopes": "openid profile email offline_access",
+  "redirectUri": "https://redirectUri.de"
+}

@@ -1,9 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as Http;
 
 class HTTPHelper {
+  static Http.Client httpClient = Http.Client();
+
+  HTTPHelper({Http.Client http}) {
+    HTTPHelper.httpClient = http ?? Http.Client();
+  }
+
   static Future<dynamic> postData({
     String url,
     Map<String, Object> data,
@@ -20,7 +26,7 @@ class HTTPHelper {
         }
       }
 
-      final response = await http.post(
+      final response = await httpClient.post(
         url,
         body: data == null ? null : json.encode(data),
         headers: _headers,
@@ -51,7 +57,7 @@ class HTTPHelper {
         }
       }
 
-      final response = await http.get(
+      final response = await httpClient.get(
         url,
         headers: _headers,
       );

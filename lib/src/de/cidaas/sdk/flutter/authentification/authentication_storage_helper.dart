@@ -11,55 +11,71 @@ class AuthStorageHelper {
   static const String ID_TOKEN = "id_token";
   static const String REFRESH_TOKEN = "refresh_token";
 
-  static final AuthStorageHelper _instance = AuthStorageHelper._internal();
+  static AuthStorageHelper _instance;
+  static FlutterSecureStorage _storage;
 
-  factory AuthStorageHelper() => _instance;
-  final storage = new FlutterSecureStorage();
-
-  AuthStorageHelper._internal();
-
-  Future<void> deleteToken() async {
-    await storage.delete(key: SUB);
-    await storage.delete(key: ACCESS_TOKEN);
-    await storage.delete(key: ID_TOKEN);
-    await storage.delete(key: REFRESH_TOKEN);
-    return;
+  /// Factory returns Singleton AuthStorageHelper
+  ///
+  /// if [storage] is given upon first creation, uses this FlutterSecureStorage
+  /// if not, creates a new one
+  factory AuthStorageHelper({FlutterSecureStorage storage}) {
+    if (AuthStorageHelper._instance != null) {
+      print("Use AuthStorageHelper instance");
+      return AuthStorageHelper._instance;
+    } else {
+      print("Use new authInstance with storage: ");
+      print(storage);
+      return AuthStorageHelper._internal(storage: storage);
+    }
   }
 
-  Future<bool> hasToken() async {
-    String token = await storage.read(key: ACCESS_TOKEN);
-    return token?.isNotEmpty ?? false;
+  /// Internal constr.
+  AuthStorageHelper._internal({FlutterSecureStorage storage}) {
+    if (storage == null) {
+      _storage = new FlutterSecureStorage();
+    } else {
+      _storage = storage;
+    }
+    _instance = this;
+  }
+
+  Future<void> deleteToken() async {
+    await _storage.delete(key: SUB);
+    await _storage.delete(key: ACCESS_TOKEN);
+    await _storage.delete(key: ID_TOKEN);
+    await _storage.delete(key: REFRESH_TOKEN);
+    return;
   }
 
   Future<void> persistTokenEntity(TokenEntity tokenEntity) async {
     if (tokenEntity.sub != null) {
-      await storage.write(key: SUB, value: tokenEntity.sub);
+      await _storage.write(key: SUB, value: tokenEntity.sub);
     }
     if (tokenEntity.accessToken != null) {
-      await storage.write(key: ACCESS_TOKEN, value: tokenEntity.accessToken);
+      await _storage.write(key: ACCESS_TOKEN, value: tokenEntity.accessToken);
     }
     if (tokenEntity.idToken != null) {
-      await storage.write(key: ID_TOKEN, value: tokenEntity.idToken);
+      await _storage.write(key: ID_TOKEN, value: tokenEntity.idToken);
     }
     if (tokenEntity.refreshToken != null) {
-      await storage.write(key: REFRESH_TOKEN, value: tokenEntity.refreshToken);
+      await _storage.write(key: REFRESH_TOKEN, value: tokenEntity.refreshToken);
     }
-  }
-
-  Future<bool> hasUser(String sub) async {
-    String sub = await storage.read(key: SUB);
-    return sub?.isNotEmpty ?? false;
   }
 
   Future<TokenEntity> getCurrentToken() async {
-    String sub = await storage.read(key: SUB);
-    String accessToken = await storage.read(key: ACCESS_TOKEN);
-    String idToken = await storage.read(key: ID_TOKEN);
-    String refreshToken = await storage.read(key: REFRESH_TOKEN);
+    String sub = await _storage.read(key: SUB);
+    String accessToken = await _storage.read(key: ACCESS_TOKEN);
+    String idToken = await _storage.read(key: ID_TOKEN);
+    String refreshToken = await _storage.read(key: REFRESH_TOKEN);
     return new TokenEntity(
         accessToken: accessToken,
         idToken: idToken,
         sub: sub,
         refreshToken: refreshToken);
+  }
+
+  close() {
+    _instance = null;
+    _storage = null;
   }
 }
