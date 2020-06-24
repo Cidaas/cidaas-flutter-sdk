@@ -1,3 +1,6 @@
+# generated code coverage
+coverage/*
+
 # Miscellaneous
 *.class
 *.log
