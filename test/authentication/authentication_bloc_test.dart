@@ -1,12 +1,12 @@
-import 'package:cidaassdkflutter/cidaassdkflutter.dart';
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/http/http_helper.dart';
+import 'package:cidaas_flutter_sdk/cidaas_flutter_sdk.dart';
+import 'package:cidaas_flutter_sdk/src/de/cidaas/sdk/flutter/http/http_helper.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:async';
 import 'package:mockito/mockito.dart';
 
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/authentification/authentication_storage_helper.dart';
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/authentification/authentication_bloc.dart';
+import 'package:cidaas_flutter_sdk/src/de/cidaas/sdk/flutter/authentification/authentication_storage_helper.dart';
+import 'package:cidaas_flutter_sdk/src/de/cidaas/sdk/flutter/authentification/authentication_bloc.dart';
 import 'package:flutter/src/services/message_codec.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;

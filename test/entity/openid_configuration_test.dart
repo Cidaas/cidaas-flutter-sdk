@@ -1,4 +1,4 @@
-import 'package:cidaassdkflutter/cidaassdkflutter.dart';
+import 'package:cidaas_flutter_sdk/cidaas_flutter_sdk.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:convert';
 

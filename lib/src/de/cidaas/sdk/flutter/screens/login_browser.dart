@@ -1,4 +1,4 @@
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/entity/cidaas_config.dart';
+import 'package:cidaas_flutter_sdk/src/de/cidaas/sdk/flutter/entity/cidaas_config.dart';
 
 import './../authentification/authentication_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

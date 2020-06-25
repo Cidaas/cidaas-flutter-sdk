@@ -1,4 +1,4 @@
-import 'package:cidaassdkflutter/src/de/cidaas/sdk/flutter/screens/login_browser.dart';
+import 'package:cidaas_flutter_sdk/src/de/cidaas/sdk/flutter/screens/login_browser.dart';
 
 import 'package:flutter/material.dart';
 

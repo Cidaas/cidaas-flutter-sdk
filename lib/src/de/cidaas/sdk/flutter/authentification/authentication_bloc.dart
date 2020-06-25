@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:cidaassdkflutter/cidaassdkflutter.dart';
+import 'package:cidaas_flutter_sdk/cidaas_flutter_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'authentication_storage_helper.dart';
