@@ -6,10 +6,10 @@ import './../entity/token_entity.dart';
 /// Encapsulates the required logic to store the [TokenEntity] inside the
 /// flutter_secure_storage
 class AuthStorageHelper {
-  static const String ACCESS_TOKEN = "access_token";
-  static const String SUB = "sub";
-  static const String ID_TOKEN = "id_token";
-  static const String REFRESH_TOKEN = "refresh_token";
+  static const String ACCESS_TOKEN = 'access_token';
+  static const String SUB = 'sub';
+  static const String ID_TOKEN = 'id_token';
+  static const String REFRESH_TOKEN = 'refresh_token';
 
   static AuthStorageHelper _instance;
   static FlutterSecureStorage _storage;
@@ -29,7 +29,7 @@ class AuthStorageHelper {
   /// Internal constr.
   AuthStorageHelper._internal({FlutterSecureStorage storage}) {
     if (storage == null) {
-      _storage = new FlutterSecureStorage();
+      _storage = const FlutterSecureStorage();
     } else {
       _storage = storage;
     }
@@ -60,18 +60,18 @@ class AuthStorageHelper {
   }
 
   Future<TokenEntity> getCurrentToken() async {
-    String sub = await _storage.read(key: SUB);
-    String accessToken = await _storage.read(key: ACCESS_TOKEN);
-    String idToken = await _storage.read(key: ID_TOKEN);
-    String refreshToken = await _storage.read(key: REFRESH_TOKEN);
-    return new TokenEntity(
+    final String sub = await _storage.read(key: SUB);
+    final String accessToken = await _storage.read(key: ACCESS_TOKEN);
+    final String idToken = await _storage.read(key: ID_TOKEN);
+    final String refreshToken = await _storage.read(key: REFRESH_TOKEN);
+    return TokenEntity(
         accessToken: accessToken,
         idToken: idToken,
         sub: sub,
         refreshToken: refreshToken);
   }
 
-  close() {
+  void close() {
     _instance = null;
     _storage = null;
   }

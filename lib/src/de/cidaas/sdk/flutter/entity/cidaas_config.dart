@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 /// The cidaas configuration
 class CidaasConfig {
 
-  String baseUrl = "";
+  String baseUrl = '';
   String clientId;
   String clientSecret;
   String scopes;
@@ -17,7 +17,7 @@ class CidaasConfig {
     @required this.scopes,
     @required this.redirectURI,
   }) {
-    this.wellKnownURI = this.baseUrl + "/.well-known/openid-configuration";
+    wellKnownURI = baseUrl + '/.well-known/openid-configuration';
   }
 
   CidaasConfig.fromJson(Map<String, dynamic> json)
@@ -26,9 +26,9 @@ class CidaasConfig {
         clientSecret = json['clientSecret'],
         scopes = json['scopes'],
         redirectURI = json['redirectUri'],
-        this.wellKnownURI = json['baseUrl'] != null ? json['baseUrl'] + "/.well-known/openid-configuration" : "";
+        wellKnownURI = json['baseUrl'] != null ? json['baseUrl'] + '/.well-known/openid-configuration' : '';
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => <String, dynamic> {
         'baseUrl': baseUrl,
         'clientId': clientId,
         'clientSecret': clientSecret,

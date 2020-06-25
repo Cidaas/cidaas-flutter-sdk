@@ -124,7 +124,7 @@ class OpenIdConfiguration {
         opTosUri = json['op_tos_uri'],
         scimEndpoint = json['scim_endpoint'];
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => <String, dynamic> {
     'issuer': issuer,
     'userinfo_endpoint': userinfoEndpoint,
     'authorization_endpoint': authorizationEndpoint,

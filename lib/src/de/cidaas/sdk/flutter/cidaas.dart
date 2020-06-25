@@ -1,11 +1,10 @@
-import 'package:cidaas_flutter_sdk/src/de/cidaas/sdk/flutter/screens/login_browser.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import '../flutter/entity/token_entity.dart';
 import 'authentification/authentication_bloc.dart';
-import './screens/splash_screen.dart';
+import 'screens/login_browser.dart';
+import 'screens/splash_screen.dart';
 
 /// The [Cidaas] class encapsulates the Bloc logic
 /// To use it, implement getLoggedInScreen() & getLoggedOutScreen().
@@ -22,7 +21,7 @@ abstract class Cidaas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
-        builder: (context, state) {
+        builder: (BuildContext context, AuthenticationState state) {
           if (state is AuthenticationSuccessState) {
             return getLoggedInScreen(tokenEntity: state.tokenEntity);
           }
@@ -38,7 +37,7 @@ abstract class Cidaas extends StatelessWidget {
           if (state is AuthenticationFailureState) {
             return getAuthenticationFailureScreen(errorMessage: state.error);
           }
-          throw("Unknown authentication state");
+          throw 'Unknown authentication state';
         },
     );
   }
@@ -51,11 +50,11 @@ abstract class Cidaas extends StatelessWidget {
   ///  Widget getLoggedInScreen({tokenEntity}) {
   ///    return MyCustomLoggedInScreenOrAppHomePage(tokenEntity: tokenEntity);
   ///  }
-  Widget getLoggedInScreen({tokenEntity});
+  Widget getLoggedInScreen({TokenEntity tokenEntity});
 
   /// Override this method to display a custom loading screen
   Widget getSplashScreen() {
-    return SplashScreen();
+    return const SplashScreen();
   }
 
   /// This screen will be displayed if the user is logged out
@@ -67,14 +66,14 @@ abstract class Cidaas extends StatelessWidget {
   ///      onPressed: () {
   ///        CidaasLoginProvider.doLogin(context);
   ///      },
-  Widget getLoggedOutScreen({context});
+  Widget getLoggedOutScreen({BuildContext context});
 
   /// This screen will be displayed if no access_token is received after login
   ///
   /// [errorMessage] will contain the errorMessage
-  Widget getAuthenticationFailureScreen({errorMessage}) {
+  Widget getAuthenticationFailureScreen({String errorMessage}) {
     return Center(
-      child: Text('$errorMessage',
+      child: Text(errorMessage,
       style: TextStyle(
         fontWeight: FontWeight.bold,
         color: Colors.red

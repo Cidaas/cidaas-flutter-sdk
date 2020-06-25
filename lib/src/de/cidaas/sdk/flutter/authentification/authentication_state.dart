@@ -3,7 +3,7 @@ part of 'authentication_bloc.dart';
 /// The AuthenticationState
 abstract class AuthenticationState extends Equatable {
   @override
-  List<Object> get props => [];
+  List<Object> get props => <Object>[];
   const AuthenticationState();
 }
 

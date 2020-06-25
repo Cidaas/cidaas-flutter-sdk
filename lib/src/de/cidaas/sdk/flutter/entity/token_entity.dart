@@ -20,7 +20,7 @@ class TokenEntity {
         sub = json['sub'],
         refreshToken = json['refresh_token'];
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => <String, dynamic> {
     'access_token': accessToken,
     'id_token': idToken,
     'sub': sub,

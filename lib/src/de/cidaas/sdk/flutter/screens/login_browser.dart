@@ -1,10 +1,11 @@
-import 'package:cidaas_flutter_sdk/src/de/cidaas/sdk/flutter/entity/cidaas_config.dart';
-
-import './../authentification/authentication_bloc.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../cidaas_login_provider.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../cidaas_login_provider.dart';
+import '../entity/cidaas_config.dart';
+import '../entity/token_entity.dart';
+import './../authentification/authentication_bloc.dart';
 
 class LoginBrowser extends StatefulWidget {
   final String reRouteToAfterLogin;
@@ -34,17 +35,17 @@ class _LoginBrowserState extends State<LoginBrowser> {
     _authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
   }
 
-  final comKey = Key('login');
+  final Key comKey = const Key('login');
 
-  addListener(CidaasConfig config) {
-    final flutterWebviewPlugin = new FlutterWebviewPlugin();
+  void addListener(CidaasConfig config) {
+    final FlutterWebviewPlugin flutterWebviewPlugin = FlutterWebviewPlugin();
 
     flutterWebviewPlugin.onUrlChanged
         .listen((String url) async {
       if (url.startsWith(config.redirectURI)) {
-        final parsedUrl = Uri.parse(url);
-        final code = parsedUrl.queryParameters["code"];
-        final tokenEntity =
+        final Uri parsedUrl = Uri.parse(url);
+        final String code = parsedUrl.queryParameters['code'];
+        final TokenEntity tokenEntity =
         await CidaasLoginProvider.getAccessTokenByCode(
             code.toString());
         if (tokenEntity != null) {
@@ -67,12 +68,12 @@ class _LoginBrowserState extends State<LoginBrowser> {
   @override
   Widget build(BuildContext context) {
     Widget getWebView() {
-      Future<String> _initURL = CidaasLoginProvider.getLoginURL();
+      final Future<String> _initURL = CidaasLoginProvider.getLoginURL();
       return FutureBuilder<String>(
           future: _initURL, // a previously-obtained Future<String> or null
           builder: (BuildContext context, AsyncSnapshot<String> urlSnapshot) {
             if (urlSnapshot.hasData) {
-              Future<CidaasConfig> _config =
+              final Future<CidaasConfig> _config =
                   CidaasLoginProvider.getCidaasConf();
               return FutureBuilder<CidaasConfig>(
                   future: _config,

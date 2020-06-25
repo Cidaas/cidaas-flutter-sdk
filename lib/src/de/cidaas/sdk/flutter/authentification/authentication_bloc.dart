@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
-import 'package:cidaas_flutter_sdk/cidaas_flutter_sdk.dart';
 import 'package:flutter/material.dart';
+import 'package:bloc/bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'authentication_storage_helper.dart';
-import './../entity/token_entity.dart';
 import 'package:equatable/equatable.dart';
+import '../cidaas_login_provider.dart';
+import './../entity/token_entity.dart';
+import 'authentication_storage_helper.dart';
 
 part 'authentication_event.dart';
 
@@ -35,9 +35,9 @@ class AuthenticationBloc
   /// Internal constr.
   AuthenticationBloc._internal({FlutterSecureStorage secureStorage}) {
     if (secureStorage == null) {
-      AuthenticationBloc._authStorageHelper = new AuthStorageHelper();
+      AuthenticationBloc._authStorageHelper = AuthStorageHelper();
     } else {
-      AuthenticationBloc._authStorageHelper = new AuthStorageHelper(storage: secureStorage);
+      AuthenticationBloc._authStorageHelper = AuthStorageHelper(storage: secureStorage);
     }
     AuthenticationBloc._instance = this;
   }
@@ -68,7 +68,7 @@ class AuthenticationBloc
     if (event is AuthenticationLoggedInEvent) {
       yield AuthenticationInProgressState();
       if (event.tokenEntity == null || event.tokenEntity.accessToken == null) {
-        yield AuthenticationFailureState(error: "No access token received after login");
+        yield const AuthenticationFailureState(error: 'No access token received after login');
       } else {
         await _authStorageHelper.persistTokenEntity(event.tokenEntity);
         yield AuthenticationSuccessState(tokenEntity: event.tokenEntity);
@@ -83,7 +83,7 @@ class AuthenticationBloc
   }
 
   @override
-  close() async {
+  Future<void> close() async {
     _instance = null;
     _authStorageHelper?.close();
     _authStorageHelper = null;

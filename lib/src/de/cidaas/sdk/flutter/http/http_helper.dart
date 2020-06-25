@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:http/http.dart' as Http;
+import 'package:http/http.dart' as http;
 
 class HTTPHelper {
-  static Http.Client httpClient = Http.Client();
+  static http.Client httpClient = http.Client();
 
-  HTTPHelper({Http.Client http}) {
-    HTTPHelper.httpClient = http ?? Http.Client();
+  HTTPHelper({http.Client httpClient}) {
+    HTTPHelper.httpClient = httpClient ?? http.Client();
   }
 
   static Future<dynamic> postData({
@@ -16,29 +16,29 @@ class HTTPHelper {
     Map<String, String> headers,
   }) async {
     try {
-      Map<String, String> _headers = {
+      final Map<String, String> _headers = <String, String> {
         'content-type': 'application/json',
       };
 
       if (headers != null && headers.isNotEmpty) {
-        for (var header in headers.keys) {
+        for (final String header in headers.keys) {
           _headers[header] = headers[header];
         }
       }
 
-      final response = await httpClient.post(
+      final http.Response response = await httpClient.post(
         url,
         body: data == null ? null : json.encode(data),
         headers: _headers,
       );
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
+        final dynamic responseData = json.decode(response.body);
         return responseData;
       } else {
         return null;
       }
     } catch (e) {
-      throw(e);
+      rethrow;
     }
   }
 
@@ -47,28 +47,28 @@ class HTTPHelper {
     Map<String, String> headers,
   }) async {
     try {
-      Map<String, String> _headers = {
+      final Map<String, String> _headers = <String, String> {
         'content-type': 'application/json',
       };
 
       if (headers != null && headers.isNotEmpty) {
-        for (var header in headers.keys) {
+        for (final String header in headers.keys) {
           _headers[header] = headers[header];
         }
       }
 
-      final response = await httpClient.get(
+      final http.Response response = await httpClient.get(
         url,
         headers: _headers,
       );
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
+        final dynamic responseData = json.decode(response.body);
         return responseData;
       } else {
         return null;
       }
     } catch (e) {
-      throw(e);
+      rethrow;
     }
   }
 }

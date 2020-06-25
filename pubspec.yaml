@@ -1,6 +1,6 @@
 name: cidaas_flutter_sdk
 description: cidaas sdk for flutter
-version: 0.0.1
+version: 1.0.0-dev.1
 homepage: https://www.cidaas.com
 
 environment:
