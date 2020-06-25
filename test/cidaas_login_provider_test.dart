@@ -77,7 +77,6 @@ void main() {
 
     test('get LoginUrl', () async {
       String loginUrl = await CidaasLoginProvider.getLoginURL();
-      print(loginUrl);
       expect(loginUrl != null, true);
       expect(
           loginUrl,
@@ -165,7 +164,6 @@ void main() {
     runZoned(() {
       CidaasLoginProvider.checkAndLoadConfig(configPath: "assets/cidaas_config_without_baseUrl.json");
     }, onError: expectAsync1((e) {
-      print(e);
       expect(e is ConfigurationError, true);
       expect(e.toString(),
           "ConfigurationError: Error reading the cidaas baseURL from file: assets/cidaas_config_without_baseUrl.json");

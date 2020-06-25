@@ -20,11 +20,8 @@ class AuthStorageHelper {
   /// if not, creates a new one
   factory AuthStorageHelper({FlutterSecureStorage storage}) {
     if (AuthStorageHelper._instance != null) {
-      print("Use AuthStorageHelper instance");
       return AuthStorageHelper._instance;
     } else {
-      print("Use new authInstance with storage: ");
-      print(storage);
       return AuthStorageHelper._internal(storage: storage);
     }
   }
