@@ -1,19 +1,19 @@
-# cidaas flutter sdk
+# cidaas flutter SDK
 
-This sdk makes it easy to secure your flutter app with [cidaas](https://www.cidaas.com/).
+This SDK makes it easy to secure your flutter app with [cidaas](https://www.cidaas.com/).
 
 ## Getting Started
 With this SDK you can secure your flutter application easily with cidaas.  
 
 ### Requirements
-Dart sdk version:
-sdk: ">=2.7.0 <3.0.0"
+Dart SDK version:
+SDK: ">=2.7.0 <3.0.0"
 
 ### Installation
-Add the cidaas flutter sdk to your dependency section of your project's pubspec.yaml:
+Add the cidaas flutter SDK to your dependency section of your project's pubspec.yaml:
 ```
 dependencies:
-  cidaas-sdk-flutter: ^3.3.3`
+  cidaas-SDK-flutter: ^3.3.3`
 ```
 ### Configuration
 To use the authenticate your users via the authorization code flow,  
@@ -35,23 +35,24 @@ flutter:
   assets:
     - assets/
 ```
-Per default, the sdk will search for this configuration file under '/assets', but you can also define any other path where the sdk should search for this configuration.
-Note, that you will have to provide the path to the configuration within your code to the sdk if you chose so.
+Per default, the SDK will search for this configuration file under '/assets', but you can also define any other path where the SDK should search for this configuration.
+Note, that you will have to provide the path to the configuration within your code to the SDK if you chose so.
+You can do this by calling ```checkAndLoadConfig({configPath: "your/custom/path/to/your/cidaas_config.json"})``` from within your code **before the first login event is triggered.**
 
 ### Overview
-The sdk is using the [Bloc pattern](https://pub.dev/packages/bloc).
+The SDK is using the [Bloc pattern](https://pub.dev/packages/bloc).
 
 There are two important classes to be used:
 * The *Cidaas* class, which can be implemented and listens to your current Authentication State to decide which Widget should get displayed,
 * the *CidaasLoginProvider*, which provides static methods to be used in the context of authorization.
 
 #### Integration
-To integrate the sdk into your application, you will need to implement the *Cidaas* class.
+To integrate the SDK into your application, you will need to implement the *Cidaas* class.
 This class encapsulates the state logic used by the authentication Bloc.
 All it needs, is the information what should be displayed when your user is:
 * Not logged in
 * Ís logged in
-* The sdk is doing some asynchronous tasks
+* The SDK is doing some asynchronous tasks
 * The Authentication was not successful
 
 This is done via the four methods
