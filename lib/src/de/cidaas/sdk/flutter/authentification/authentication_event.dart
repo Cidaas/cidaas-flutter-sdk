@@ -1,25 +1,24 @@
-import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
+part of 'authentication_bloc.dart';
 
-abstract class AuthenticationEvent extends Equatable {
+/// The AuthenticationEvent
+abstract class AuthenticationEvent {
   const AuthenticationEvent();
-
-  @override
-  List<Object> get props => [];
 }
 
-class AuthenticationStarted extends AuthenticationEvent {}
+/// Describes that the Authentication has started
+class AuthenticationStartedEvent extends AuthenticationEvent {}
 
-class AuthenticationLoggedIn extends AuthenticationEvent {
-  final String token;
+/// Describes that the Authentication was successful
+///
+/// Contains the [TokenEntity] with the access_token
+class AuthenticationLoggedInEvent extends AuthenticationEvent {
+  final TokenEntity tokenEntity;
 
-  const AuthenticationLoggedIn({@required this.token});
+  const AuthenticationLoggedInEvent({@required this.tokenEntity});
 
   @override
-  List<Object> get props => [token];
-
-  @override
-  String toString() => 'LoggedIn { token: $token }';
+  String toString() => 'AuthenticationLoggedInEvent { tokenEntity: $tokenEntity }';
 }
 
-class AuthenticationLoggedOut extends AuthenticationEvent {}
+/// Describes that the logout has started
+class AuthenticationLoggedOutEvent extends AuthenticationEvent {}

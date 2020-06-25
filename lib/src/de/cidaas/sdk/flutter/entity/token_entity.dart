@@ -1,5 +1,8 @@
 import 'package:flutter/widgets.dart';
 
+/// The obtained TokenEntity after login
+///
+/// contains [accessToken], [idToken], [sub], [refreshToken]
 class TokenEntity {
   String accessToken;
   String idToken;
@@ -24,4 +27,6 @@ class TokenEntity {
     'refresh_token': refreshToken,
   };
 
+  @override
+  String toString() => 'TokenEntity ${toJson().toString()}';
 }
