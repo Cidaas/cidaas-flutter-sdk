@@ -26,46 +26,57 @@ class CidaasLoginProvider {
   static Future<OpenIdConfiguration> checkAndLoadConfig(
       {String configPath = 'assets/cidaas_config.json'}) async {
     configPath ??= 'assets/cidaas_config.json';
-    if (_cidaasConf == null || _cidaasConf.baseUrl.isEmpty ||
+    if (_cidaasConf == null ||
+        _cidaasConf.baseUrl.isEmpty ||
         _openIdConfiguration == null ||
         _openIdConfiguration.authorizationEndpoint.isEmpty) {
       Map<String, dynamic> configMap;
       try {
         configMap = jsonDecode(await rootBundle.loadString(configPath));
       } catch (e) {
-        throw ConfigurationError('Could not load cidaas config from path: ' + configPath.toString());
+        throw ConfigurationError(
+            'Could not load cidaas config from path: ' + configPath.toString());
       }
       final CidaasConfig conf = CidaasConfig.fromJson(configMap);
       if (conf.baseUrl == null) {
-        throw ConfigurationError('Error reading the cidaas baseURL from file: ' + configPath.toString());
+        throw ConfigurationError(
+            'Error reading the cidaas baseURL from file: ' +
+                configPath.toString());
       }
-      if (conf.baseUrl.startsWith('http') && !conf.baseUrl.startsWith('https')) {
+      if (conf.baseUrl.startsWith('http') &&
+          !conf.baseUrl.startsWith('https')) {
         //Don't get a token via http!
-        throw ConfigurationError("Please use 'https' in the baseURL instead of 'http'. Config loaded: " + configPath.toString());
+        throw ConfigurationError(
+            "Please use 'https' in the baseURL instead of 'http'. Config loaded: " +
+                configPath.toString());
       }
       if (conf.clientId == null) {
-        throw ConfigurationError('clientId is not set in cidaas config: ' + configPath.toString());
+        throw ConfigurationError(
+            'clientId is not set in cidaas config: ' + configPath.toString());
       }
       if (conf.clientSecret == null) {
-        throw ConfigurationError('clientSecret is not set in cidaas config: ' + configPath.toString());
+        throw ConfigurationError('clientSecret is not set in cidaas config: ' +
+            configPath.toString());
       }
       if (conf.redirectURI == null) {
-        throw ConfigurationError('redirectUri is not set in cidaas config: ' + configPath.toString());
+        throw ConfigurationError('redirectUri is not set in cidaas config: ' +
+            configPath.toString());
       }
       _cidaasConf = conf;
       try {
-        final Map<String, dynamic> configResponse = await HTTPHelper.getData(
-            url: conf.wellKnownURI);
+        final Map<String, dynamic> configResponse =
+            await HTTPHelper.getData(url: conf.wellKnownURI);
         if (configResponse != null) {
           _openIdConfiguration = OpenIdConfiguration.fromJson(configResponse);
           return _openIdConfiguration;
         } else {
-          throw WellKnownOpenIdConfigLoadError('Response from well-known endpoint ${conf
-              .wellKnownURI} is null!');
+          throw WellKnownOpenIdConfigLoadError(
+              'Response from well-known endpoint ${conf.wellKnownURI} is null!');
         }
       } catch (e, s) {
-        throw WellKnownOpenIdConfigLoadError('Could not get well known configuration from ${conf
-            .wellKnownURI}! Error: ${e.toString()}' + s.toString());
+        throw WellKnownOpenIdConfigLoadError(
+            'Could not get well known configuration from ${conf.wellKnownURI}! Error: ${e.toString()}' +
+                s.toString());
       }
     }
     return _openIdConfiguration;
@@ -89,7 +100,8 @@ class CidaasLoginProvider {
   /// If no configuration has been loaded before, will load the configuration from the cidaas_config.json file
   /// and fetch the well-known openId configuration from your cidaas instance.
   /// In this case, if [configPath] is provided it will load the cidaas_config.json from the provided [configPath]
-  static Future<OpenIdConfiguration> getOpenIdConfiguration({String configDir}) async {
+  static Future<OpenIdConfiguration> getOpenIdConfiguration(
+      {String configDir}) async {
     if (CidaasLoginProvider._openIdConfiguration != null) {
       return CidaasLoginProvider._openIdConfiguration;
     } else {
@@ -116,8 +128,7 @@ class CidaasLoginProvider {
     if (_cidaasConf.redirectURI != null && _cidaasConf.redirectURI.isNotEmpty) {
       _redirectUri = Uri.encodeComponent(_cidaasConf.redirectURI);
     }
-    return '${conf.authorizationEndpoint}?client_id=${_cidaasConf
-        .clientId}&response_type=code&scope=$_scopes&redirect_uri=$_redirectUri';
+    return '${conf.authorizationEndpoint}?client_id=${_cidaasConf.clientId}&response_type=code&scope=$_scopes&redirect_uri=$_redirectUri';
   }
 
   /// returns the accessToken by the given [code]
@@ -128,13 +139,14 @@ class CidaasLoginProvider {
     try {
       final Map<String, dynamic> tokenResponse = await HTTPHelper.postData(
           url: conf.tokenEndpoint,
-          data: <String, String> {
+          data: <String, String>{
             'grant_type': 'authorization_code',
             'client_id': _cidaasConf.clientId,
             'client_secret': _cidaasConf.clientSecret,
             'code': code,
             'redirect_uri': _cidaasConf.redirectURI,
-          }, headers: <String, String> {});
+          },
+          headers: <String, String>{});
       if (tokenResponse != null) {
         final TokenEntity tokenEntity = TokenEntity.fromJson(tokenResponse);
         await _authStorageHelper.persistTokenEntity(tokenEntity);
@@ -155,14 +167,14 @@ class CidaasLoginProvider {
       final OpenIdConfiguration conf = await checkAndLoadConfig();
       final Map<String, dynamic> tokenResponse = await HTTPHelper.postData(
           url: conf.tokenEndpoint,
-          data: <String, String> {
+          data: <String, String>{
             'grant_type': 'refresh_token',
             'client_id': _cidaasConf.clientId,
             'client_secret': _cidaasConf.clientSecret,
             'refresh_token': refreshToken,
             'redirect_uri': _cidaasConf.redirectURI,
           },
-          headers: <String, String> {});
+          headers: <String, String>{});
       if (tokenResponse != null) {
         final TokenEntity tokenEntity = TokenEntity.fromJson(tokenResponse);
         await _authStorageHelper.persistTokenEntity(tokenEntity);
@@ -193,8 +205,7 @@ class CidaasLoginProvider {
 
       await HTTPHelper.postData(
           url:
-          '${conf.endSessionEndpoint}?access_token_hint=${tokenInfo
-              .accessToken}');
+              '${conf.endSessionEndpoint}?access_token_hint=${tokenInfo.accessToken}');
 
       // Clear all local dbs
       await _authStorageHelper.deleteToken();
@@ -235,10 +246,10 @@ class CidaasLoginProvider {
       return null;
     }
     final String decClaimSet =
-    CidaasLoginProvider._decodeBase64(accessToken.split('.')[1]);
+        CidaasLoginProvider._decodeBase64(accessToken.split('.')[1]);
     final dynamic tokenInfo = json.decode(decClaimSet);
     final DateTime expiresAt =
-    DateTime.fromMillisecondsSinceEpoch(tokenInfo['exp'] * 1000);
+        DateTime.fromMillisecondsSinceEpoch(tokenInfo['exp'] * 1000);
     final Duration difference = expiresAt.difference(DateTime.now());
     return (difference.inSeconds < 60) ? null : tokenInfo;
   }
@@ -249,8 +260,8 @@ class CidaasLoginProvider {
   /// If no token is stored, returns null
   static Future<TokenEntity> getStoredAccessToken() async {
     final TokenEntity dbEntity = await _authStorageHelper.getCurrentToken();
-    if (dbEntity == null || (dbEntity.accessToken == null ||
-        dbEntity.accessToken.isEmpty)) {
+    if (dbEntity == null ||
+        (dbEntity.accessToken == null || dbEntity.accessToken.isEmpty)) {
       return null;
     }
     final dynamic tokenInfo = isAccessTokenExpired(dbEntity.accessToken);
@@ -258,7 +269,7 @@ class CidaasLoginProvider {
     if (tokenInfo == null) {
       //tokenInfo = null -> renew Access token
       final TokenEntity newEntity =
-      await renewAccessTokenByRefreshToken(dbEntity.refreshToken);
+          await renewAccessTokenByRefreshToken(dbEntity.refreshToken);
       return newEntity;
     } else if (tokenInfo['iss'] != _cidaasConf.baseUrl) {
       // Clear all local dbs

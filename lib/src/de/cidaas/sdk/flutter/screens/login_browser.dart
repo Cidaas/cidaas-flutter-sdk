@@ -40,20 +40,17 @@ class _LoginBrowserState extends State<LoginBrowser> {
   void addListener(CidaasConfig config) {
     final FlutterWebviewPlugin flutterWebviewPlugin = FlutterWebviewPlugin();
 
-    flutterWebviewPlugin.onUrlChanged
-        .listen((String url) async {
+    flutterWebviewPlugin.onUrlChanged.listen((String url) async {
       if (url.startsWith(config.redirectURI)) {
         final Uri parsedUrl = Uri.parse(url);
         final String code = parsedUrl.queryParameters['code'];
         final TokenEntity tokenEntity =
-        await CidaasLoginProvider.getAccessTokenByCode(
-            code.toString());
+            await CidaasLoginProvider.getAccessTokenByCode(code.toString());
         if (tokenEntity != null) {
-          _authenticationBloc.add(AuthenticationLoggedInEvent(
-              tokenEntity: tokenEntity));
+          _authenticationBloc
+              .add(AuthenticationLoggedInEvent(tokenEntity: tokenEntity));
           flutterWebviewPlugin.close();
-          if (this._reRouteToAfterLogin?.isNotEmpty ??
-              false) {
+          if (this._reRouteToAfterLogin?.isNotEmpty ?? false) {
             Navigator.of(context).pushReplacementNamed(
                 this._reRouteToAfterLogin,
                 arguments: tokenEntity);

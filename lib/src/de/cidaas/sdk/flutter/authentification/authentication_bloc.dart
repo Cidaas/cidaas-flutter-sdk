@@ -15,7 +15,6 @@ part 'authentication_state.dart';
 /// The authentication Bloc used to determine which screen should get displayed
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
-
   static AuthenticationBloc _instance;
 
   static AuthStorageHelper _authStorageHelper;
@@ -37,7 +36,8 @@ class AuthenticationBloc
     if (secureStorage == null) {
       AuthenticationBloc._authStorageHelper = AuthStorageHelper();
     } else {
-      AuthenticationBloc._authStorageHelper = AuthStorageHelper(storage: secureStorage);
+      AuthenticationBloc._authStorageHelper =
+          AuthStorageHelper(storage: secureStorage);
     }
     AuthenticationBloc._instance = this;
   }
@@ -53,7 +53,6 @@ class AuthenticationBloc
     if (event is AuthenticationStartedEvent) {
       yield AuthenticationInProgressState();
       try {
-
         if (await CidaasLoginProvider.isAuth()) {
           yield AuthenticationSuccessState(
               tokenEntity: await _authStorageHelper.getCurrentToken());
@@ -68,7 +67,8 @@ class AuthenticationBloc
     if (event is AuthenticationLoggedInEvent) {
       yield AuthenticationInProgressState();
       if (event.tokenEntity == null || event.tokenEntity.accessToken == null) {
-        yield const AuthenticationFailureState(error: 'No access token received after login');
+        yield const AuthenticationFailureState(
+            error: 'No access token received after login');
       } else {
         await _authStorageHelper.persistTokenEntity(event.tokenEntity);
         yield AuthenticationSuccessState(tokenEntity: event.tokenEntity);

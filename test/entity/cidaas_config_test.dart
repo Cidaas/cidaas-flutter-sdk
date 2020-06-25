@@ -8,7 +8,8 @@ void main() {
       const String jsonString =
           '{"baseUrl": "BASEURL", "clientId": "CLIENTID", "clientSecret": "CLIENTSECRET", "scopes": "SCOPES", "redirectUri": "REDIRECTURI"}';
 
-      final CidaasConfig config = CidaasConfig.fromJson(json.decode(jsonString));
+      final CidaasConfig config =
+          CidaasConfig.fromJson(json.decode(jsonString));
       expect(config.baseUrl, 'BASEURL');
       expect(config.clientId, 'CLIENTID');
       expect(config.clientSecret, 'CLIENTSECRET');

@@ -8,7 +8,8 @@ void main() {
       const String jsonString =
           '{"access_token": "ACCESSTOKEN", "id_token": "IDTOKEN", "sub": "SUB", "refresh_token": "REFRESH_TOKEN"}';
 
-      final TokenEntity tokenEntity = TokenEntity.fromJson(json.decode(jsonString));
+      final TokenEntity tokenEntity =
+          TokenEntity.fromJson(json.decode(jsonString));
       expect(tokenEntity.accessToken, 'ACCESSTOKEN');
       expect(tokenEntity.idToken, 'IDTOKEN');
       expect(tokenEntity.sub, 'SUB');
@@ -16,7 +17,11 @@ void main() {
     });
 
     test('create the json from TokenEntity', () {
-      final TokenEntity tokenEntity = TokenEntity(accessToken: 'ACCESSTOKEN', idToken: 'IDTOKEN', sub: 'SUB', refreshToken: 'REFRESHTOKEN');
+      final TokenEntity tokenEntity = TokenEntity(
+          accessToken: 'ACCESSTOKEN',
+          idToken: 'IDTOKEN',
+          sub: 'SUB',
+          refreshToken: 'REFRESHTOKEN');
 
       final Map<String, dynamic> jsonMap = tokenEntity.toJson();
       expect(jsonMap['access_token'], 'ACCESSTOKEN');
@@ -26,7 +31,11 @@ void main() {
     });
 
     test('test toString', () {
-      final TokenEntity tokenEntity = TokenEntity(accessToken: 'ACCESSTOKEN', idToken: 'IDTOKEN', sub: 'SUB', refreshToken: 'REFRESHTOKEN');
+      final TokenEntity tokenEntity = TokenEntity(
+          accessToken: 'ACCESSTOKEN',
+          idToken: 'IDTOKEN',
+          sub: 'SUB',
+          refreshToken: 'REFRESHTOKEN');
 
       final String str = tokenEntity.toString();
       expect(str.contains('ACCESSTOKEN'), true);

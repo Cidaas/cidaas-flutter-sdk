@@ -15,12 +15,13 @@ class AuthenticationSuccessState extends AuthenticationState {
 
   AuthenticationSuccessState({@required this.tokenEntity});
 
-  TokenEntity get token{
+  TokenEntity get token {
     return tokenEntity;
   }
 
   @override
-  String toString() => 'AuthenticationSuccessState { tokenEntity: $tokenEntity }';
+  String toString() =>
+      'AuthenticationSuccessState { tokenEntity: $tokenEntity }';
 }
 
 /// States that the authentication was not successful

@@ -1,5 +1,5 @@
 name: cidaas_flutter_sdk
-description: cidaas sdk for flutter
+description: This sdk can be used to authenticate the users of your flutter application with cidaas.
 version: 1.0.0-dev.1
 homepage: https://www.cidaas.com
 

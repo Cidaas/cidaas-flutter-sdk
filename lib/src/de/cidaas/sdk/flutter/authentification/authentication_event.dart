@@ -17,7 +17,8 @@ class AuthenticationLoggedInEvent extends AuthenticationEvent {
   const AuthenticationLoggedInEvent({@required this.tokenEntity});
 
   @override
-  String toString() => 'AuthenticationLoggedInEvent { tokenEntity: $tokenEntity }';
+  String toString() =>
+      'AuthenticationLoggedInEvent { tokenEntity: $tokenEntity }';
 }
 
 /// Describes that the logout has started

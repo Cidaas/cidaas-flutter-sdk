@@ -17,28 +17,27 @@ import 'screens/splash_screen.dart';
 ///
 /// The authentication process will start once 'CidaasLoginProvider.doLogin(context)' is called
 abstract class Cidaas extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
-        builder: (BuildContext context, AuthenticationState state) {
-          if (state is AuthenticationSuccessState) {
-            return getLoggedInScreen(tokenEntity: state.tokenEntity);
-          }
-          if (state is AuthenticationShowLoginWithBrowserState) {
-            return LoginBrowser(splashScreen: getSplashScreen());
-          }
-          if (state is AuthenticationInProgressState) {
-            return getSplashScreen();
-          }
-          if (state is AuthenticationHasLoggedOutState) {
-            return getLoggedOutScreen(context: context);
-          }
-          if (state is AuthenticationFailureState) {
-            return getAuthenticationFailureScreen(errorMessage: state.error);
-          }
-          throw 'Unknown authentication state';
-        },
+      builder: (BuildContext context, AuthenticationState state) {
+        if (state is AuthenticationSuccessState) {
+          return getLoggedInScreen(tokenEntity: state.tokenEntity);
+        }
+        if (state is AuthenticationShowLoginWithBrowserState) {
+          return LoginBrowser(splashScreen: getSplashScreen());
+        }
+        if (state is AuthenticationInProgressState) {
+          return getSplashScreen();
+        }
+        if (state is AuthenticationHasLoggedOutState) {
+          return getLoggedOutScreen(context: context);
+        }
+        if (state is AuthenticationFailureState) {
+          return getAuthenticationFailureScreen(errorMessage: state.error);
+        }
+        throw 'Unknown authentication state';
+      },
     );
   }
 
@@ -73,11 +72,10 @@ abstract class Cidaas extends StatelessWidget {
   /// [errorMessage] will contain the errorMessage
   Widget getAuthenticationFailureScreen({String errorMessage}) {
     return Center(
-      child: Text(errorMessage,
-      style: TextStyle(
-        fontWeight: FontWeight.bold,
-        color: Colors.red
-      ),),
+      child: Text(
+        errorMessage,
+        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+      ),
     );
   }
 }

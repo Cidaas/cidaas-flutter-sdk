@@ -16,7 +16,7 @@ class HTTPHelper {
     Map<String, String> headers,
   }) async {
     try {
-      final Map<String, String> _headers = <String, String> {
+      final Map<String, String> _headers = <String, String>{
         'content-type': 'application/json',
       };
 
@@ -47,7 +47,7 @@ class HTTPHelper {
     Map<String, String> headers,
   }) async {
     try {
-      final Map<String, String> _headers = <String, String> {
+      final Map<String, String> _headers = <String, String>{
         'content-type': 'application/json',
       };
 
