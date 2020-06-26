@@ -3,23 +3,18 @@
 This SDK makes it easy to secure your flutter app with [cidaas](https://www.cidaas.com/).
 
 ## Getting Started
-With this SDK you can secure your flutter application easily with cidaas.  
+With this SDK you can secure your flutter application with cidaas.  
+You can have a look at the example project [here](https://github.com/Cidaas/cidaas-flutter-sdk-example).
 
 ### Requirements
 Dart SDK version:
 SDK: ">=2.7.0 <3.0.0"
 
-### Installation
-Add the cidaas flutter SDK to your dependency section of your project's pubspec.yaml:
-```
-dependencies:
-  cidaas-SDK-flutter: ^3.3.3`
-```
 ### Configuration
-To use the authenticate your users via the authorization code flow,  
+To authenticate your users via the authorization code flow,  
 please first configure your cidaas Application as described [here](https://docs.cidaas.de/manage-applications.html)
 
-You have to create the cidaas_config.json file under your project's root folder, this should contain following values:
+You have to create the cidaas_config.json file under the /assets/ - folder in your project's root folder, this should contain following values:
 ```
 {
   "baseUrl": "https://yourCidaasBaseUrl.de",
@@ -35,9 +30,9 @@ flutter:
   assets:
     - assets/
 ```
-Per default, the SDK will search for this configuration file under '/assets', but you can also define any other path where the SDK should search for this configuration.
+Per default, the SDK will search for this configuration file under '<projectRootDirectory>/assets', but you can also define any other path where the SDK should search for this configuration.
 Note, that you will have to provide the path to the configuration within your code to the SDK if you chose so.
-You can do this by calling ```checkAndLoadConfig({configPath: "your/custom/path/to/your/cidaas_config.json"})``` from within your code **before the first login event is triggered.**
+You can do this by calling ```checkAndLoadConfig({configPath: "your/custom/path/to/your/cidaas_config.json"})``` from within your code before the first login event is triggered.
 
 ### Overview
 The SDK is using the [Bloc pattern](https://pub.dev/packages/bloc).

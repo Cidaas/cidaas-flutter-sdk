@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:cidaas_flutter_sdk/cidaas_flutter_sdk.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart' show rootBundle;
